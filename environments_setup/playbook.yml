@@ -3,14 +3,12 @@
     - copyProjectFiles
     - installVirtualbox
     - andrewrothstein.vagrant
+    - { role: elastic.elasticsearch, es_instance_name: "node1" }
+    - { role: geerlingguy.kibana, become: yes }
   tasks:
   - name: Create vagrant's VM
     command: chdir=~/project/ vagrant up
 - hosts: integration
-  tasks:
-  - name: test connection ok
-    copy:
-      content: ""
-      dest: /tmp/test.txt
-      force: no
-      mode: 0555
+  roles:
+  - { role: elastic.elasticsearch, es_instance_name: "node1" }
+  - { role: geerlingguy.kibana, become: yes }

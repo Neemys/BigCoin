@@ -5,15 +5,12 @@ python:
 
 env:
 - ANSIBLE_VERSION=latest
-- ANSIBLE_VERSION=2.4.3.0
 
 before_install:
 - sudo apt-get update -qq
-- openssl aes-256-cbc -K $encrypted_6135307a9f3a_key -iv $encrypted_6135307a9f3a_iv
-  -in ansible.enc -out ~/.ssh/id_rsa -d
+- openssl aes-256-cbc -K $encrypted_6135307a9f3a_key -iv $encrypted_6135307a9f3a_iv -in environment_setup/ssh/ansible.enc -out ~/.ssh/id_rsa -d
 - apt-get install sshpass
-- openssl aes-256-cbc -K $encrypted_907f20eb4f27_key -iv $encrypted_907f20eb4f27_iv
-  -in travis.enc -out /tmp/travis -d
+- openssl aes-256-cbc -K $encrypted_907f20eb4f27_key -iv $encrypted_907f20eb4f27_iv -in environment_setup/travis.enc -out /tmp/travis -d
 - PASS_PHRASE = (cat /tmp/travis)
 - sshpass -p $PASS_PHRASE
 

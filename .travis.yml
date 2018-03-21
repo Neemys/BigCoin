@@ -13,8 +13,7 @@ before_install:
 - PASS_PHRASE=(cat /tmp/travis)
 - sshpass -p $PASS_PHRASE
 install:
-- if [ "$ANSIBLE_VERSION" = "latest"]; then pip install ansible; else pip install
-  ansible==$ANSIBLE_VERSION; fi
+- pip install ansible
 script:
 - cd environments_setup
 - ansible-playbook -i playbook.yml --syntax-check

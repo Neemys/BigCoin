@@ -16,5 +16,5 @@ install:
 - pip install ansible
 script:
 - cd environments_setup
-- ansible-playbook -i playbook.yml --syntax-check
-- ansible-playbook -i playbook.yml -vvvv
+- ansible-playbook playbook.yml --syntax-check
+- ansible-playbook playbook.yml -vvvv

@@ -1,0 +1,8 @@
+Vagrant.configure("2") do |config|
+	config.vm.box = "debian/stretch64"
+	config.vm.define "integration" do |machine|
+		machine.vm.network "private_network", ip: "172.17.177.20"
+		config.vm.synced_folder "./", "/vagrant", type: "rsync", rsync__exclude: ".git/"
+		config.vm.provision "file", source: "ansible.pub", destination: "~/.ssh/authorized_keys"
+	end
+end

@@ -1,0 +1,16 @@
+- hosts: production
+  roles:
+    - copyProjectFiles
+    - installVirtualbox
+    - andrewrothstein.vagrant
+  tasks:
+  - name: Create vagrant's VM
+    command: chdir=~/project/ vagrant up
+- hosts: integration
+  tasks:
+  - name: test connection ok
+    copy:
+      content: ""
+      dest: /tmp/test.txt
+      force: no
+      mode: 0555

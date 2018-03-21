@@ -1,0 +1,9 @@
+- name: Create directory that will hold our files
+  file: path=./project state=directory
+- name: Copy necessary project file to distant
+#src is relative to the yml file
+  copy: src={{ item.src }} dest={{ item.dest }} force=yes mode=0600
+  with_items:
+    - { src: '{{ playbook_dir }}/vagrant/Vagrantfile', dest: 'project/Vagrantfile' }
+    - { src: '{{ playbook_dir }}/ssh/ansible.pub', dest: 'project/ansible.pub' }
+    - { src: '{{ playbook_dir }}/scripts/install_virtualbox.sh', dest: 'project/install_virtualbox.sh' }

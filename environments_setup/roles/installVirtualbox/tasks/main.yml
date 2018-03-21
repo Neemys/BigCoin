@@ -1,0 +1,10 @@
+
+- name: Check if virtualbox is installed
+  shell: dpkg --status virtualbox-5.0 | grep 'install ok installed'
+  register: is_not_installed
+  failed_when: no
+  changed_when: no
+
+- name: Install if not installed
+  command: /tmp/install_virtualbox.sh
+  when: is_not_installed.rc == 1

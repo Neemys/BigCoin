@@ -7,17 +7,20 @@ import json
 import sys
 
 def add_elastic():
+	cpt = 0
 	for i in data["bpi"]:
 		date_event = datetime.datetime.strptime(i, "%Y-%m-%d").date()
 		value_event = data["bpi"][i]
 		yield {
 			"_index" : "cours_btc_idx_gen",
 			"_type": "cours_btc_gen",
+			"_id": cpt
 			"_source": {
 				"timestamp": date_event,
 				"value": value_event
 			}
 		}
+		cpt += 1
 
 host = sys.argv[1]
 port = sys.argv[2]

@@ -9,7 +9,7 @@ before_install:
   -in environments_setup/ssh/ansible.enc -out ~/.ssh/id_rsa -d
 - sudo chmod 0600 ~/.ssh/id_rsa
 install:
-- pip install ansible
+- sudo apt-get install ansible
 script:
 - cd environments_setup
 - ansible-playbook playbook.yml --syntax-check

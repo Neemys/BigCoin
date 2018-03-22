@@ -7,8 +7,9 @@
   - name: ensure that pip is already installed
     apt: name=python3-pip state=latest
     become: yes
-  - name: install python packages elasticsearch requests
+  - name: install python packages elasticsearch requests pyspark
     pip: name={{ item }}
     with_items:
       - elasticsearch
       - requests
+      - pyspark

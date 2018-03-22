@@ -15,3 +15,6 @@
   roles:
   - { role: elastic.elasticsearch, es_instance_name: "node1" }
   - { role: geerlingguy.kibana, become: yes }
+- hosts: prod_integ
+  roles:
+  - copyProjectFiles

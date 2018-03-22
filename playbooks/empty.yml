@@ -1,0 +1,4 @@
+- hosts: production
+  tasks:
+  - name: Pause for nothing
+    pause: seconds=1

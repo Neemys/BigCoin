@@ -1,6 +1,6 @@
 - hosts: production
   roles:
-    - copyProjectFiles
+    - copyFilesForVagrantAndAnsible
     - installVirtualbox
     - andrewrothstein.vagrant
     - { role: elastic.elasticsearch, es_instance_name: "node1" }

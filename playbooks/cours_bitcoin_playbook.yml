@@ -1,0 +1,14 @@
+- hosts: prod_integ
+  tasks:
+  - name: copy python script
+    copy:
+      src: ../scripts/bitcoin_cours_historique_elastic.py
+      dest: project/bitcoin_cours_historique_elastic.py
+  - name: ensure that pip is already installed
+    apt: name=python3-pip state=latest
+    become: yes
+  - name: install python packages elasticsearch requests
+    pip: name={{ item }}
+    with_items:
+      - elasticsearch
+      - requests

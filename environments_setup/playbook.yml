@@ -3,8 +3,8 @@
     - copyFilesForVagrantAndAnsible
     - installVirtualbox
     - andrewrothstein.vagrant
-    - { role: elastic.elasticsearch, es_instance_name: "node1" }
-    - { role: geerlingguy.kibana, become: yes }
+    - { role: elastic.elasticsearch, es_instance_name: "node1", es_config: {network.host: "10.5.82.93", http.port: 9200} }
+    - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5603, kibana_server_host: "10.5.82.93", kibana_elasticsearch_url: "http://10.5.82.93:9200" }
   tasks:
   - name: Destroy vagrant VM (if change in vagrant file detected)
     command: chdir=~/project/ vagrant destroy -f
@@ -13,8 +13,8 @@
     command: chdir=~/project/ vagrant up
 - hosts: integration
   roles:
-  - { role: elastic.elasticsearch, es_instance_name: "node1" }
-  - { role: geerlingguy.kibana, become: yes }
+  - { role: elastic.elasticsearch, es_instance_name: "node1", es_config: {network.host: "172.17.177.20", http.port: 9201} }
+  - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5602, kibana_elasticsearch_url: "http://172.17.177.20:9201" }
 - hosts: prod_integ
   roles:
   - copyProjectFiles

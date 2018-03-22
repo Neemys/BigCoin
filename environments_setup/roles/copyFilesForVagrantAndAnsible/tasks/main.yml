@@ -1,6 +1,6 @@
-- name: Create directory that will hold our files
+- name: Create directory that will hold our files for vagrant and ansible
   file: path=./project state=directory
-- name: Copy necessary project file to distant
+- name: Copy necessary file for vagrant and ansible to distant
   copy: src={{ item.src }} dest={{ item.dest }} force=yes mode=0600
   with_items:
     - { src: '{{ playbook_dir }}/ssh/ansible.pub', dest: 'project/ansible.pub' }

@@ -3,7 +3,7 @@
     - copyFilesForVagrantAndAnsible
     - installVirtualbox
     - andrewrothstein.vagrant
-    - { role: elastic.elasticsearch, es_instance_name: "node1", es_config: {network.host: "10.5.82.93", http.port: 9200} }
+    - { role: elastic.elasticsearch, es_instance_name: "node1",es_api_host: "10.5.82.93",es_api_host: 9200, es_config: {network.host: "10.5.82.93", http.port: 9200} }
     - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5603, kibana_server_host: "10.5.82.93", kibana_elasticsearch_url: "http://10.5.82.93:9200" }
     - andrewrothstein.zookeeper
     - andrewrothstein.kafka
@@ -16,7 +16,7 @@
     command: chdir=~/project/ vagrant up
 - hosts: integration
   roles:
-  - { role: elastic.elasticsearch, es_instance_name: "node1", es_config: {network.host: "172.17.177.20", http.port: 9201} }
+  - { role: elastic.elasticsearch, es_instance_name: "node1",es_api_host: "172.17.177.20",es_api_host: 9201, es_config: {network.host: "172.17.177.20", http.port: 9201} }
   - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5602, kibana_elasticsearch_url: "http://172.17.177.20:9201" }
   - andrewrothstein.zookeeper
   - andrewrothstein.kafka
@@ -25,7 +25,7 @@
   roles:
   - copyProjectFiles
   tasks:
-  - name: Ensure python 3 and pip 3 installed
+  - name: Ensure necessary packages are installed
     apt: name={{ item }} state=latest
     become: yes
     with_items:

@@ -1,4 +1,4 @@
-# Setup server environments
+# Setup server environments [![Build Status](https://travis-ci.org/bigdata-project-march-2018-team2/BigCoin.svg?branch=environments_setup)](https://travis-ci.org/bigdata-project-march-2018-team2/BigCoin)
 Create the integration and production environments using ansible.
 
 ## Requirements

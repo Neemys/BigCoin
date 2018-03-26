@@ -1,8 +1,8 @@
 language: python
 python:
 - '3.6'
-env:
-- ANSIBLE_VERSION=latest
+dist: trusty
+sudo: required
 stages:
   - test
   - deploy

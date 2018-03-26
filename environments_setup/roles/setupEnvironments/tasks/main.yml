@@ -1,0 +1,11 @@
+
+- set_fact:
+    application_username: "{{ application_username }}"
+    application_usergroup: "{{ application_username }}"
+
+- name: "Create application user"
+  become: yes
+  user:
+    name: "{{ application_username }}"
+    state: present
+    system: yes

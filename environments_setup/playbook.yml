@@ -8,6 +8,7 @@
       with_items: "production"
       tags: create_integration
   roles:
+    - setupEnvironments
     - { role: copyFilesForVagrantAndAnsible, tags: ['create_integration'] }
     - { role: installVirtualbox, tags: ['create_integration'] }
     - { role: andrewrothstein.vagrant, tags: ['create_integration'] }
@@ -26,11 +27,21 @@
     tags: create_integration
 - hosts: integration
   roles:
-  - { role: elastic.elasticsearch, es_instance_name: "node1",es_api_host: "172.17.177.20",es_api_port: 9201, es_config: {network.host: "172.17.177.20", http.port: 9201} }
-  - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5602, kibana_elasticsearch_url: "http://172.17.177.20:9201" }
+  - setupEnvironments
+  - { role: elastic.elasticsearch, es_enable_xpack: true, es_instance_name: "node1",es_api_host: "172.17.177.20",es_api_port: 9201, es_config: {network.host: "172.17.177.20", http.port: 9201} }
+  - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5602, kibana_server_host: "172.17.177.20", kibana_elasticsearch_url: "http://172.17.177.20:9201", kibana_es_user: "{{ es_kibana_user }}", kibana_es_password: "{{ es_kibana_pass }}" }
   - andrewrothstein.zookeeper
   - andrewrothstein.kafka
   - andrewrothstein.spark
+  - role: franklinkim.environment
+    become: yes
+    environment_config:
+      ES_HOST: "{{ es_addr }}"
+      ES_PORT: "{{ es_port }}"
+      ES_ADMIN_USER: "{{ es_admin_user }}"
+      ES_ADMIN_PASS: "{{ es_admin_pass }}"
+      KIBANA_HOST: "{{ kibana_addr }}"
+      KIBANA_PORT: "{{ kibana_port }}"
 - hosts: prod_integ
   roles:
   - copyProjectFiles

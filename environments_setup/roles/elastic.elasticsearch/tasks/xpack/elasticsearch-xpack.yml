@@ -8,6 +8,7 @@
 
 #Security configuration
 - name: include security/elasticsearch-security.yml
+  become: yes
   include: security/elasticsearch-security.yml
 
 #Add any feature specific configuration here

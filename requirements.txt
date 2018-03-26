@@ -1,5 +1,5 @@
 requests
 elasticsearch
 kafka
-pyspark
 mock
+pyspark

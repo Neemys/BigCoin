@@ -3,6 +3,17 @@ python:
 - '3.6'
 env:
 - ANSIBLE_VERSION=latest
+stages:
+  - test
+  - deploy
+jobs:
+  include:
+    - stage: test
+      script: environments_setup/scripts/check_playbooks
+    - stage: deploy
+      script: environments_setup/scripts/setup_integration
+    - stage: deploy
+      script: environments_setup/scripts/setup_production
 before_install:
 - sudo apt-get update -qq
 - openssl aes-256-cbc -K $encrypted_af7caec4de64_key -iv $encrypted_af7caec4de64_iv
@@ -10,8 +21,3 @@ before_install:
 - sudo chmod 0600 ~/.ssh/id_rsa
 install:
 - pip install ansible
-script:
-- cd environments_setup
-- ansible-playbook -i inventory playbook.yml --syntax-check
-- ansible-playbook -i inventory playbook.yml -vvvv
-- ansible-playbook -i inventory ../playbooks/* -vvvv

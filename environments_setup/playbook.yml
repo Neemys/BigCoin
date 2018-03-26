@@ -1,8 +1,16 @@
 - hosts: production
+  pre_tasks:
+    - name: Force Gather facts
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      when: hostvars[item]['ansible_default_ipv4'] is not defined
+      with_items: "production"
+      tags: create_integration
   roles:
-    - copyFilesForVagrantAndAnsible
-    - installVirtualbox
-    - andrewrothstein.vagrant
+    - { role: copyFilesForVagrantAndAnsible, tags: ['create_integration'] }
+    - { role: installVirtualbox, tags: ['create_integration'] }
+    - { role: andrewrothstein.vagrant, tags: ['create_integration'] }
     - { role: elastic.elasticsearch, es_instance_name: "node1",es_api_host: "10.5.82.93",es_api_port: 9200, es_config: {network.host: "10.5.82.93", http.port: 9200} }
     - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5603, kibana_server_host: "10.5.82.93", kibana_elasticsearch_url: "http://10.5.82.93:9200" }
     - andrewrothstein.zookeeper
@@ -12,8 +20,10 @@
   - name: Destroy vagrant VM (if change in vagrant file detected)
     command: chdir=~/project/ vagrant destroy -f
     when: vagrantfile_edited == 1
+    tags: create_integration
   - name: Create vagrant's VM
     command: chdir=~/project/ vagrant up
+    tags: create_integration
 - hosts: integration
   roles:
   - { role: elastic.elasticsearch, es_instance_name: "node1",es_api_host: "172.17.177.20",es_api_port: 9201, es_config: {network.host: "172.17.177.20", http.port: 9201} }

@@ -4,9 +4,9 @@
     copy:
       src: {{ item.src }} dest: {{ item.dest }}
       with_items:
-        - { src: '../scripts/historique_to_elastic.py', dest: 'project/historique_to_elastic.py' }
-        - { src: '../scripts/price_index_to_kafka_realtime.py', dest: 'project/price_index_to_kafka_realtime.py' }
-        - { src: '../scripts/spark_stream_from_kafka_realtime.py', dest: 'project/spark_stream_from_kafka_realtime.py' }
+        - { src: '../cours_bitcoin/src/historique_to_elastic.py', dest: 'project/historique_to_elastic.py' }
+        - { src: '../cours_bitcoin/src/price_index_to_kafka_realtime.py', dest: 'project/price_index_to_kafka_realtime.py' }
+        - { src: '../cours_bitcoin/src/spark_stream_from_kafka_realtime.py', dest: 'project/spark_stream_from_kafka_realtime.py' }
   - name: ensure that pip is already installed
     apt: name=python-pip state=latest
     become: yes

@@ -1,0 +1,28 @@
+language: python
+python:
+- '3.6'
+dist: trusty
+sudo: required
+stages:
+  - test
+  - deploy
+jobs:
+  include:
+    - stage: test
+      script: environments_setup/scripts/check_playbooks
+    - stage: deploy
+      script: environments_setup/scripts/setup_integration
+      if: branch = develop
+    - stage: deploy
+      script: environments_setup/scripts/setup_production
+      if: branch = master
+before_install:
+- sudo apt-get update -qq
+install:
+- pip install ansible
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_e13c462cd0ef_key -iv $encrypted_e13c462cd0ef_iv
+  -in environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml.enc -out environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml -d
+- openssl aes-256-cbc -K $encrypted_af7caec4de64_key -iv $encrypted_af7caec4de64_iv
+  -in environments_setup/ssh/ansible.enc -out ~/.ssh/id_rsa -d
+- sudo chmod 0600 ~/.ssh/id_rsa

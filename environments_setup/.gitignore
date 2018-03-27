@@ -1,0 +1,2 @@
+#If playbook fail, this file is created
+playbook.retry

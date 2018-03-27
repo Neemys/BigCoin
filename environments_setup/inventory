@@ -1,0 +1,7 @@
+
+production ansible_ssh_host=Prod
+integration ansible_ssh_host=Integ
+
+[prod_integ]
+production
+integration

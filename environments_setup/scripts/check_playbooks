@@ -1,0 +1,6 @@
+
+cd environments_setup
+#Check main playbook
+ansible-playbook -i inventory playbook.yml --syntax-check
+#Check all other playbooks
+ansible-playbook -i inventory ../playbooks/* --syntax-check

@@ -1,0 +1,12 @@
+Vagrant.configure("2") do |config|
+	config.vm.box = "debian/stretch64"
+	config.vm.network "forwarded_port", guest: 5602, host: 5602, host_ip: "10.5.82.93"
+	config.vm.define "integration" do |machine|
+		machine.vm.network "private_network", ip: "172.17.177.20"
+		config.vm.synced_folder "./", "/vagrant", type: "rsync", rsync__exclude: ".git/"
+		config.vm.provision "file", source: "ansible.pub", destination: "~/.ssh/authorized_keys"
+	end
+	config.vm.provider :virtualbox do |vb|
+	  vb.customize ["modifyvm", :id, "--memory", "8192"]
+	end
+end

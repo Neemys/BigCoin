@@ -57,3 +57,14 @@
     src: '{{item.f}}.j2'
     dest: '{{item.d}}/{{item.f}}'
     mode: '{{item.m|default("0644")}}'
+
+- name: launch zookeeper
+  become: yes
+  become_user: root
+  command: chdir="{{kafka_install_link_dir}}/bin" ./zookeeper-server-start.sh -daemon ../config/zookeeper.properties
+
+
+- name: launch kafka
+  become: yes
+  become_user: root
+  command: chdir="{{kafka_install_link_dir}}/bin" ./kafka-server-start.sh -daemon ../config/server.properties

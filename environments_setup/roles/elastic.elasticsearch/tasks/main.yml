@@ -14,8 +14,8 @@
     es_port: "{{ es_api_port }}"
     es_admin_user: admin
     es_admin_pass: "{{ es_users['file']['admin']['password'] }}"
-    es_kibana_user: kibana_server
-    es_kibana_pass: "{{ es_users['file']['kibana_server']['password'] }}"
+    es_kibana_user: admin
+    es_kibana_pass: "{{ es_users['file']['admin']['password'] }}"
 
 - name: check-set-parameters
   include: elasticsearch-parameters.yml

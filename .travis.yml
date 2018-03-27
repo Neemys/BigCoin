@@ -12,10 +12,10 @@ jobs:
       script: environments_setup/scripts/check_playbooks
     - stage: deploy
       script: environments_setup/scripts/setup_integration
-      if: branch = develop
+      if: branch = develop and type = push
     - stage: deploy
       script: environments_setup/scripts/setup_production
-      if: branch = master
+      if: branch = master and type = push
 before_install:
 - sudo apt-get update -qq
 install:

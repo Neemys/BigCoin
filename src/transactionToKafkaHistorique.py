@@ -1,25 +1,18 @@
 import requests
-from elasticsearch import Elasticsearch
-from elasticsearch import helpers
 from datetime import date, timedelta
 import datetime
 import time
 import json
 import sys
+from kafka import KafkaProducer
 
 # Default values
-host_es = 'localhost'
-port_es = 9200
 date_search = str(datetime.date.today())
 
 # Input values
-# host and port of elastic search database
-if (len(sys.argv) >= 3):
-    host_es = sys.argv[1]
-    port_es = sys.argv[2]
 # date to search data for
-if (len(sys.argv) >= 4):
-    date_search = sys.argv[3]
+if (len(sys.argv) >= 2):
+    date_search = sys.argv[1]
 
 
 def get_single_block(block_id):
@@ -61,13 +54,6 @@ def get_transactions_from_block(data_block):
                 }
 
 
-def connect_add_elastic(data):
-    # Connect to elastic search
-    es = Elasticsearch([{'host': host_es, 'port': port_es}])
-    # Add data in elastic search in bulk
-    helpers.bulk(es, get_transactions_from_block(data))
-
-
 def convert_date_in_ms(date):
     # timestamp = int(time.mktime(datetime.datetime.strptime(date, "%Y-%m-%d").timetuple()))
     timestamp = int(time.mktime(date.timetuple()))
@@ -81,17 +67,30 @@ def daterange(start_date, end_date):
 
 
 def main():
+
+    # Connect to Kafka
+    producer = KafkaProducer(acks=1, max_request_size=10000000, bootstrap_servers='localhost:9092')
+
+    # Assign a topic
+    topic = 'transaction-historique'
+
+    # Date range to get data from
     date_search = datetime.datetime.strptime('2018-03-25', "%Y-%m-%d").date()
     start_date = datetime.datetime.strptime('2018-01-01', "%Y-%m-%d").date()
     end_date = datetime.datetime.strptime('2018-03-20', "%Y-%m-%d").date()
+
+    # For each day in date range, send each block to Kafka
     for single_date in daterange(start_date, end_date):
+
         res_blocks = get_blocks_for_day(convert_date_in_ms(single_date))
         data_blocks = res_blocks.json()
+
         for i in range(len(data_blocks["blocks"])):
+
             res = get_single_block(data_blocks["blocks"][i]['hash'])
             if (res != None):
                 data = res.json()
-                connect_add_elastic(data)
+                producer.send(topic, str(data))
 
 
 if __name__ == '__main__':

@@ -82,7 +82,7 @@ public class App
                 // Initialize ES client
                 Settings settings = Settings.builder().put("xpack.security.user", "admin:Pkui854poioi65").build();
                 TransportClient client = new PreBuiltXPackTransportClient(settings)
-                TransportClient client = new PreBuiltTransportClient(Settings.EMPTY)
+                //TransportClient client = new PreBuiltTransportClient(Settings.EMPTY)
                         .addTransportAddress(new TransportAddress(InetAddress.getByName(host_es), port_es));
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, uuuu HH:mm:ss zzz", Locale.US);

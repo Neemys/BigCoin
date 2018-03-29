@@ -23,7 +23,7 @@ class HistoriqueToKafkaTest(unittest.TestCase):
 					'currency':currency
 				},
 				'key':None,
-				'timestamp_ms':1293836400000.0
+				'timestamp_ms':1293840000000.0
 			},
 			{
 				'message': {
@@ -32,7 +32,7 @@ class HistoriqueToKafkaTest(unittest.TestCase):
 					'currency':currency
 				},
 				'key':None,
-				'timestamp_ms':1293922800000.0
+				'timestamp_ms':1293926400000.0
 			}
 
 		]

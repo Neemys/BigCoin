@@ -3,4 +3,3 @@ elasticsearch
 kafka
 mock
 pyspark
-pytz

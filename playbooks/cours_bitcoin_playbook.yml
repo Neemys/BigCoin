@@ -16,7 +16,6 @@
       - kafka
       - requests
       - pyspark
-      - pytz
   - name: run python scripts
     command: python "{{ item.filename }}" {{ item.args }}
     with_items:

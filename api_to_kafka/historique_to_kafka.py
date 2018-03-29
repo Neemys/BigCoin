@@ -1,12 +1,11 @@
 from datetime import datetime,date,timedelta
-from time import mktime
 import json
 import sys
 import struct
 import os.path
 import re
 from bigcoin import bc_kafka, webservice
-import pytz
+import calendar
 
 # Global values
 date_y_m_d_pattern = re.compile("^[0-9]{4}-[0-9]{2}-[0-9]{2}$")
@@ -20,7 +19,7 @@ def generate_data_for_kafka_from_json(json_data):
 	if type(json_data) is dict and json_data.has_key("bpi"):
 		for date, amount in json_data["bpi"].iteritems():
 			year,month,day = date.split('-')
-			timestamp = mktime(datetime(int(year),int(month),int(day),0,0,0,0,pytz.UTC).timetuple())
+			timestamp = calendar.timegm(datetime(int(year),int(month),int(day),0,0,0,0).timetuple())
 			data_to_send = {
 				'date':date,
 				'amount':amount,

@@ -12,7 +12,7 @@ import sys
 
 STOPWORDS = set(stopwords.words('english'))
 CHAR_TO_REMOVE = ',.:;?!"()'
-API_KEYS = 'dc0e06addf374ea580cf20959bd49002'
+API_KEYS = 'your API key'
 SPLIT_WEIGHT = 0.7
 localhost = '' 
 port = ''

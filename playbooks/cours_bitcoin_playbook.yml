@@ -5,6 +5,7 @@
       src: {{ item.src }} dest: {{ item.dest }}
       with_items:
         - { src: '../kafka_to_elastic/price_index_to_kafka_realtime.py', dest: 'project/price_index_to_kafka_realtime.py' }
+        - { src: '../api_to_kafka/historique_to_kafka.py', dest: 'project/historique_to_kafka.py' }
   - name: ensure that pip is already installed
     apt: name=python-pip state=latest
     become: yes
@@ -19,3 +20,4 @@
     command: python "{{ item.filename }}" {{ item.args }}
     with_items:
       - { filename: "project/price_index_to_kafka_realtime.py" args: ""}
+      - { filename: "project/historique_to_kafka.py" args: ""}

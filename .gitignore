@@ -8,3 +8,6 @@ out/
 # Maven
 log/
 target/
+
+#BigCoin specifics
+*.bcdata

@@ -13,11 +13,14 @@ import sys
 STOPWORDS = set(stopwords.words('english'))
 CHAR_TO_REMOVE = ',.:;?!"()'
 API_KEYS = 'your API key'
+API_KEYS = sys.argv[1]
 SPLIT_WEIGHT = 0.7
-localhost = '' 
-port = ''
-index = ''
-doc_type = ''
+# default values
+es_host = 'localhost' 
+es_port = 9200
+es_index = 'cours_btc_idx_test'
+es_doc_type = 'cours_btc_test'
+date_predict = '2018-03-29'
 
 #Initialize SparkSession
 spark = SparkSession \
@@ -44,8 +47,8 @@ def get_next_day(date_str):
 	return next_date_str
 		
 def retrieve_bitcoin_cours(date_str):
-	es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
-	res = es.get(index='cours_btc_idx_test', doc_type='cours_btc_test', id=date_str)
+	es = Elasticsearch([{'host': es_host, 'port': es_port}])
+	res = es.get(index=es_index, doc_type=es_doc_type, id=date_str)
 	return res
 
 def retrieve_data_day(date_str):
@@ -57,7 +60,7 @@ def retrieve_data_day(date_str):
        'from='+date_early+'&'
 	   'to='+date_late+'&'
        'sortBy=relevance&'
-	   'pageSize=100&'
+	   'pageSize=20&'
 	   'page=1&'
        'apiKey='+API_KEYS)
 	  
@@ -112,12 +115,13 @@ def split_data(rdd):
 	(rdd_train, rdd_test) = rdd.randomSplit([SPLIT_WEIGHT, 1.0 - SPLIT_WEIGHT])
 	return (spark.createDataFrame(rdd_train), spark.createDataFrame(rdd_test))
 	
-def train_model(rdd_train):
-	
+def get_data_day_to_predict(date_str):
 	return True
 	
-def test_model():
-	return True
+def predict_result(df):
+	# 1.0 bitcoin cours up
+	# 0.0 bitcoin cours down
+	return 1.0
 	
 def get_variation_value(date_str, date_next_str):
 	date = date_str
@@ -133,7 +137,7 @@ def get_variation_value(date_str, date_next_str):
 	
 def main():
 	date_start = '2018-01-01'
-	date_end = '2018-03-28'
+	date_end = '2018-02-01'
 	date_search = date_start
 	
 	tuples_list = []

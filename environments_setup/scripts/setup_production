@@ -1,5 +1,5 @@
 
-cd environments_setup
+cd $TRAVIS_BUILD_DIR/environments_setup
 #Run all production tasks for main playbook
 ansible-playbook -i inventory playbook.yml -l production --skip-tags=create_integration
 #Run all production tasks for all other playbooks

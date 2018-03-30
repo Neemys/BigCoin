@@ -2,10 +2,24 @@ language: python
 
 python:
 - '2.7'
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default
+
 dist: trusty
+stages:
+  - install
+  - test
+  - before_deploy
+    if: branch in (develop, master) and type = push
 
 install:
 - pip install -r requirements.txt
 script:
 - export PYTHONPATH=$(pwd)/big_coin_common_module/src
 - pytest
+before_deploy:
+- cd kafka_to_elastic/cours_bitcoin_realtime/
+- mvn package -DskipTests=true

@@ -1,5 +1,5 @@
 
-cd environments_setup
+cd $TRAVIS_BUILD_DIR/environments_setup
 #Check main playbook
 ansible-playbook -i inventory playbook.yml --syntax-check
 #Check all other playbooks

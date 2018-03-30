@@ -23,7 +23,7 @@ import org.json.JSONObject;
  * Spark Streaming from Kafka to ElasticSearch
  *
  */
-public class App 
+public class App
 {
     // Default config
     private static String broker = "localhost:9092";
@@ -43,14 +43,14 @@ public class App
         }
 
         // Get user and password from system variable
-        String es_user = System.getenv("ES_ADMIN_USER")
-        String es_pwd = System.getenv("ES_ADMIN_PASSWORD")
+        String es_user = System.getenv("ES_ADMIN_USER");
+        String es_pwd = System.getenv("ES_ADMIN_PASSWORD");
         // Get elastic host and port from system variable
-        if(System.getenv("ES_HOST") != null){
-            host_es = System.getenv("ES_HOST")
+        if(System.getenv("ES_HOST") != null) {
+            host_es = System.getenv("ES_HOST");
         }
-        if(System.getenv("ES_PORT") != null){
-            port_es = System.getenv("ES_HOST")
+        if(System.getenv("ES_PORT") != null) {
+            port_es = System.getenv("ES_PORT");
         }
 
         // Initialize Spark config and context

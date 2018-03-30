@@ -17,9 +17,10 @@ stages:
 
 install:
 - pip install -r requirements.txt
+#Shouldn't be here, but workaround to be executed in branch 'develop' jobs
+- cd kafka_to_elastic/cours_bitcoin_realtime/
+- mvn package -DskipTests=true
 script:
 - export PYTHONPATH=$(pwd)/big_coin_common_module/src
 - pytest
 before_deploy:
-- cd kafka_to_elastic/cours_bitcoin_realtime/
-- mvn package -DskipTests=true

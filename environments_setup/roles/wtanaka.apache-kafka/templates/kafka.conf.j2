@@ -1,6 +1,0 @@
-check process {%if 'file_basename' in item%}{{item.file_basename}}{%else%}{{kafka_default_file_basename_prefix}}{{item.broker_id}}{%endif%} with pidfile {{kafka_pid_directory}}{%if 'file_basename' in item%}{{item.file_basename}}{%else%}{{kafka_default_file_basename_prefix}}{{item.broker_id}}{%endif%}.pid
-  start program = "/etc/init.d/{%if 'file_basename' in item%}{{item.file_basename}}{%else%}{{kafka_default_file_basename_prefix}}{{item.broker_id}}{%endif%}.sh start"
-    as uid {{kafka_user}}
-  stop program = "/etc/init.d/{%if 'file_basename' in item%}{{item.file_basename}}{%else%}{{kafka_default_file_basename_prefix}}{{item.broker_id}}{%endif%}.sh stop"
-    as uid {{kafka_user}}
-{{kafka_extra_monit_config}}

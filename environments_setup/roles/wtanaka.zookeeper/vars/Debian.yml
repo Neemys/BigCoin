@@ -1,7 +1,0 @@
----
-package_names:
-- zookeeper
-- zookeeper-bin
-- zookeeperd
-zookeeper_cfg_file: /etc/zookeeper/conf/zoo.cfg
-zookeeper_myid_file: /etc/zookeeper/conf/myid

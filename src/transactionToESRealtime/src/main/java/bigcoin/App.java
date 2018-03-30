@@ -39,15 +39,15 @@ public class App
 
         // Custom config (from input)
         if (args.length > 0) {
-            host_es = args[0]
+            host_es = args[0];
         }
         if (args.length > 1) {
-            currency = args[1]
+            currency = args[1];
         }
 
         // Get user and password from system variable
-        String es_user = System.getenv("ES_ADMIN_USER")
-        String es_pwd = System.getenv("ES_ADMIN_PASSWORD")
+        String es_user = System.getenv("ES_ADMIN_USER");
+        String es_pwd = System.getenv("ES_ADMIN_PASSWORD");
 
         // Initialize Spark config and context
         SparkConf sparkConf = new SparkConf().setAppName("SparkStreamKafka").setMaster("local[2]");

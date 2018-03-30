@@ -42,6 +42,10 @@ public class App
             currency = args[1];
         }
 
+        // Get user and password from system variable
+        String es_user = System.getenv("ES_ADMIN_USER")
+        String es_pwd = System.getenv("ES_ADMIN_PASSWORD")
+
         // Initialize Spark config and context
         SparkConf sparkConf = new SparkConf().setAppName("SparkStreamKafka").setMaster("local[2]");
         sparkConf.set("es.index.auto.create", "true");
@@ -72,7 +76,7 @@ public class App
                 System.setProperty("es.set.netty.runtime.available.processors", "false");
 
                 // Initialize ES client
-                Settings settings = Settings.builder().put("xpack.security.user", "admin:Pkui854poioi65").build();
+                Settings settings = Settings.builder().put("xpack.security.user", es_user+":"+es_pwd).build();
                 TransportClient client = new PreBuiltXPackTransportClient(settings)
                         .addTransportAddress(new TransportAddress(InetAddress.getByName(host_es), port_es));
 

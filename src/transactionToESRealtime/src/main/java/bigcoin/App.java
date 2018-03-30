@@ -38,16 +38,11 @@ public class App
     public static void main( String[] args ) throws UnknownHostException {
 
         // Custom config (from input)
-        if (args.length >= 2) {
-            broker = args[0];
-            topic = args[1];
+        if (args.length > 0) {
+            host_es = args[0]
         }
-        if (args.length >= 4) {
-            host_es = args[2];
-            port_es = Integer.parseInt(args[3]);
-        }
-        if (args.length >= 5) {
-            currency = args[4];
+        if (args.length > 1) {
+            currency = args[1]
         }
 
         // Initialize Spark config and context

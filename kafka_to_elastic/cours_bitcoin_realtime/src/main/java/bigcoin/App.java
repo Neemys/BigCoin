@@ -16,6 +16,7 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.xpack.client.PreBuiltXPackTransportClient;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.json.JSONObject;
 
@@ -50,7 +51,7 @@ public class App
             host_es = System.getenv("ES_HOST");
         }
         if(System.getenv("ES_PORT") != null) {
-            port_es = System.getenv("ES_PORT");
+            port_es = Integer.parseInt(System.getenv("ES_PORT"));
         }
 
         // Initialize Spark config and context

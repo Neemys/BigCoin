@@ -35,16 +35,11 @@ public class App
     public static void main( String[] args ) throws UnknownHostException {
 
         // Custom config (from input)
-        if (args.length >= 3) {
-            broker = args[1];
-            topic = args[2];
+        if (args.length > 0) {
+            host_es = args[0];
         }
-        if (args.length >= 5) {
-            host_es = args[3];
-            port_es = Integer.parseInt(args[4]);
-        }
-        if (args.length >= 6) {
-            currency = args[5];
+        if (args.length > 1) {
+            currency = args[1];
         }
 
         // Initialize Spark config and context
@@ -77,7 +72,8 @@ public class App
                 System.setProperty("es.set.netty.runtime.available.processors", "false");
 
                 // Initialize ES client
-                TransportClient client = new PreBuiltTransportClient(Settings.EMPTY)
+                Settings settings = Settings.builder().put("xpack.security.user", "admin:Pkui854poioi65").build();
+                TransportClient client = new PreBuiltXPackTransportClient(settings)
                         .addTransportAddress(new TransportAddress(InetAddress.getByName(host_es), port_es));
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, uuuu HH:mm:ss zzz", Locale.US);
@@ -117,7 +113,6 @@ public class App
                 }
                 client.close();
             });
-
         });
 
         // Start Streaming

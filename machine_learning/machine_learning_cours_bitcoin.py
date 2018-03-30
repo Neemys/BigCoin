@@ -1,3 +1,6 @@
+import sys
+import datetime
+from datetime import timedelta
 from pyspark.sql import SparkSession, Row
 from pyspark.ml.feature import CountVectorizer, StringIndexer
 from pyspark.ml.classification import NaiveBayes
@@ -6,21 +9,21 @@ import requests
 from elasticsearch import Elasticsearch
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-import datetime
-from datetime import timedelta
-import sys
+from util_ml import get_next_day, filter_text, get_aggregated_text, format_data
 
 STOPWORDS = set(stopwords.words('english'))
 CHAR_TO_REMOVE = ',.:;?!"()'
 API_KEYS = 'your API key'
 API_KEYS = sys.argv[1]
-SPLIT_WEIGHT = 0.7
+SPLIT_WEIGHT = 0.6
 # default values
 es_host = 'localhost' 
 es_port = 9200
 es_index = 'cours_btc_idx_test'
 es_doc_type = 'cours_btc_test'
 date_predict = '2018-03-29'
+if (len(sys.argv) >= 3):
+	date_predict = sys.argv[2]
 
 #Initialize SparkSession
 spark = SparkSession \
@@ -29,6 +32,7 @@ spark = SparkSession \
 	.config("master", "local[3]") \
 	.getOrCreate()
 sc = spark.sparkContext
+
 
 def convert(input):
     if isinstance(input, dict):
@@ -39,7 +43,7 @@ def convert(input):
         return input.encode('utf-8')
     else:
         return input
-		
+	
 def get_next_day(date_str):
 	date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
 	next_day = date + timedelta(days=1)
@@ -51,7 +55,7 @@ def retrieve_bitcoin_cours(date_str):
 	res = es.get(index=es_index, doc_type=es_doc_type, id=date_str)
 	return res
 
-def retrieve_data_day(date_str):
+def retrieve_raw_data_day(date_str):
 	date_early = date_str+'T00:00:00'
 	date_late = date_str+'T23:59:59'
 	url_googlenews_api = ('https://newsapi.org/v2/everything?'
@@ -60,7 +64,7 @@ def retrieve_data_day(date_str):
        'from='+date_early+'&'
 	   'to='+date_late+'&'
        'sortBy=relevance&'
-	   'pageSize=20&'
+	   'pageSize=10&'
 	   'page=1&'
        'apiKey='+API_KEYS)
 	  
@@ -68,7 +72,7 @@ def retrieve_data_day(date_str):
 	if response.status_code == 200:
 		return response.json()
 	else:
-		print ('error')
+		# print ('error')
 		return None
 		# sys.exit(20)
 
@@ -78,7 +82,7 @@ def filter_text(text):
 	list_mots = text.lower().split(' ')
 	#filter ponctuations and stopwords
 	list_mots = [mot.strip(CHAR_TO_REMOVE) for mot in list_mots]
-	list_mots = [mot for mot in list_mots if mot not in STOPWORDS and mot != '' and '+' not in mot]
+	list_mots = [mot for mot in list_mots if mot not in STOPWORDS and mot.isalpha()]
 	#lemmatize words
 	wordnet_lemmatizer = WordNetLemmatizer()
 	list_mots = [wordnet_lemmatizer.lemmatize(mot) for mot in list_mots]
@@ -91,7 +95,7 @@ def get_aggregated_text(formatted_data):
 		date, list_mots = i
 		aggregated_mots += list_mots
 	return aggregated_mots
-	
+
 def format_data(raw_data):
 	formatted_data = []
 	for i in range (len(raw_data['articles'])):
@@ -115,8 +119,16 @@ def split_data(rdd):
 	(rdd_train, rdd_test) = rdd.randomSplit([SPLIT_WEIGHT, 1.0 - SPLIT_WEIGHT])
 	return (spark.createDataFrame(rdd_train), spark.createDataFrame(rdd_test))
 	
-def get_data_day_to_predict(date_str):
-	return True
+def get_data_day(date_str):
+	data_search = retrieve_raw_data_day(date_str)
+	if data_search != None:
+		formatted_data_search = format_data(data_search)
+		if formatted_data_search != None:
+			data_list_search = get_aggregated_text(formatted_data_search)
+			# diff_day = get_variation_value(date_str, get_next_day(date_str))
+			# diff_wordslist_search = (diff_day, data_list_search)
+			return data_list_search
+	return None
 	
 def predict_result(df):
 	# 1.0 bitcoin cours up
@@ -136,14 +148,14 @@ def get_variation_value(date_str, date_next_str):
 	return float(1) if difference >= 0 else float(0)
 	
 def main():
-	date_start = '2018-01-01'
-	date_end = '2018-02-01'
+	date_start = '2018-03-01'
+	date_end = '2018-03-27'
 	date_search = date_start
 	
 	tuples_list = []
-	print (date_search)
 	while (date_search != date_end):
-		data_day = retrieve_data_day(date_search)
+		# print (date_search)
+		'''data_day = retrieve_raw_data_day(date_search)
 		if data_day != None:
 			formatted_data = format_data(data_day)
 			if formatted_data != None:
@@ -151,8 +163,12 @@ def main():
 				#data_list = [mot.encode('utf-8') for mot in data_list]
 				# print data_list
 				diff = get_variation_value(date_search, get_next_day(date_search))
-				diff_wordslist = (diff, data_list)
-				tuples_list.append(diff_wordslist)
+				diff_wordslist = (diff, data_list)'''
+		wordslist = get_data_day(date_search)
+		if wordslist != None:
+			diff = get_variation_value(date_search, get_next_day(date_search))
+			diff_wordslist = (diff, wordslist)
+			tuples_list.append(diff_wordslist)
 		date_search = get_next_day(date_search)
 	
 	# print tuples_list
@@ -193,6 +209,25 @@ def main():
 	accuracy = evaluator.evaluate(test_predicted)
 	
 	print ('Accuracy : '+ str(accuracy*100)+'%')
+	
+	# Predict specific day
+	date_predict = '2018-03-26'
+	wordlist_predict = get_data_day(date_predict)
+	tuple = (0.0, wordlist_predict)
+	table = []
+	table.append(tuple)
+	
+	rdd_predict = sc.parallelize(table)
+	rdd_predict = rdd_predict.map(lambda (indice, list): Row(diff=indice, words=list))
+	df_predict = spark.createDataFrame(rdd_predict)
+	
+	df_predict_vect = vectorizer_transformer.transform(df_predict)
+	df_predict = label_indexer_transformer.transform(df_predict_vect)
+	df_predicted = classifier_transformer.transform(df_predict)
+	
+	print ('Resultat prediction pour le jour '+date_search)
+	df_predicted.show()
+	
 
 if __name__ == "__main__":
 	main()

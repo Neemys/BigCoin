@@ -1,0 +1,40 @@
+- hosts: prod_integ
+  roles:
+  - setupVars
+  tasks:
+  - name: copy scripts
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      force: yes
+      group: "{{ application_usergroup }}"
+      owner: "{{ application_username }}"
+    with_items:
+      - { src: '../api_to_kafka/price_index_to_kafka_realtime.py', dest: '{{ application_userhome }}/price_index_to_kafka_realtime.py' }
+      - { src: '../api_to_kafka/historique_to_kafka.py', dest: '{{ application_userhome }}/historique_to_kafka.py' }
+      - { src: '../kafka_to_elastic/kafka_historique_to_elastic.py', dest: '{{ application_userhome }}/kafka_historique_to_elastic.py' }
+      - { src: '../kafka_to_elastic/cours_bitcoin_realtime/target/sparkStream-1.0.jar', dest: '{{ application_userhome }}/sparkStream-1.0.jar' }
+  - name: ensure that pip is already installed
+    apt: name=python-pip state=latest
+    become: yes
+  - name: install necessary python modules
+    pip: name={{ item }}
+    with_items:
+      - elasticsearch
+      - kafka
+      - requests
+      - pyspark
+  - name: run python scripts in background
+    become: yes
+    shell: chdir="{{ application_userhome }}" runuser -l {{ application_username }} -c 'python "{{ item.filename }}" {{ item.args }}' </dev/null >/dev/null 2>&1 &
+    with_items:
+      - { filename: "historique_to_kafka.py", args: ""}
+      - { filename: "kafka_historique_to_elastic.py", args: ""}
+      - { filename: "price_index_to_kafka_realtime.py", args: ""}
+
+  - name: run java scripts in background
+    become: yes
+    shell: chdir="{{ application_userhome }}" runuser -l {{ application_username }} -c 'java -jar "{{ item.filename }}" {{ item.args }}' </dev/null >/dev/null 2>&1 &
+    with_items:
+      - { filename: "sparkStream-1.0.jar", args: ""}

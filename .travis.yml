@@ -12,7 +12,7 @@ dist: trusty
 stages:
   - install
   - test
-  - before_deploy
+  - name: before_deploy
     if: branch in (develop, master) and type = push
 
 install:

@@ -1,0 +1,21 @@
+# Intellij
+.idea/
+*.iml
+*.iws
+out/
+ 
+ 
+# Maven
+log/
+target/
+
+#unit test
+.cache
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+#BigCoin specifics
+*.bcdata

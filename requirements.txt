@@ -1,0 +1,5 @@
+requests
+elasticsearch
+kafka
+mock
+pyspark

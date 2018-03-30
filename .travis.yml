@@ -9,12 +9,12 @@ stages:
 jobs:
   include:
     - stage: test
-      script: environments_setup/scripts/check_playbooks
+      script: $TRAVIS_BUILD_DIR/environments_setup/scripts/check_playbooks
     - stage: deploy
-      script: environments_setup/scripts/setup_integration
+      script: $TRAVIS_BUILD_DIR/environments_setup/scripts/setup_integration
       if: branch = develop and type = push
     - stage: deploy
-      script: environments_setup/scripts/setup_production
+      script: $TRAVIS_BUILD_DIR/environments_setup/scripts/setup_production
       if: branch = master and type = push
 before_install:
 - sudo apt-get update -qq

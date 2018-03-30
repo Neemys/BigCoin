@@ -37,4 +37,4 @@
     become: yes
     shell: chdir="{{ application_userhome }}" runuser -l {{ application_username }} -c 'java -jar "{{ item.filename }}" {{ item.args }}' </dev/null >/dev/null 2>&1 &
     with_items:
-      - { filename: "sparkStream-1.0.jar", args: "172.17.177.20"}
+      - { filename: "sparkStream-1.0.jar", args: ""}

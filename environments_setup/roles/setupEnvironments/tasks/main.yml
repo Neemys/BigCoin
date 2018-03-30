@@ -1,8 +1,4 @@
 
-- set_fact:
-    application_username: "{{ application_username }}"
-    application_usergroup: "{{ application_username }}"
-    application_userhome: "/home/{{ application_username }}/"
 
 - name: "Create application user"
   become: yes

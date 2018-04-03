@@ -2,6 +2,15 @@
   roles:
   - setupVars
   tasks:
+  - name: kill running scripts
+    become: yes
+    ignore_errors: True
+    shell: ps aux | grep -ie {{ item }} | grep -v grep | awk '{print $2}' | xargs kill -9
+    with_items:
+      - historique_to_kafka.py
+      - kafka_historique_to_elastic.py
+      - price_index_to_kafka_realtime.py
+      - sparkStream-1.0.jar
   - name: copy scripts
     become: yes
     copy:
@@ -25,18 +34,10 @@
       - kafka
       - requests
       - pyspark
-  - name: kill running scripts
-    become: yes
-    ignore_errors: True
-    shell: ps aux | grep -ie {{ item }} | grep -v grep | awk '{print $2}' | xargs kill -9
-    with_items:
-      - historique_to_kafka.py
-      - kafka_historique_to_elastic.py
-      - price_index_to_kafka_realtime.py
-      - sparkStream-1.0.jar
   - name: run python scripts in background
     become: yes
-    shell: chdir="{{ application_userhome }}" runuser -l {{ application_username }} -c 'python "{{ item.filename }}" {{ item.args }}' </dev/null >/dev/null 2>&1 &
+    #Using su instead of become_user because become_user do not launch script in background or force exit when vagrant shell exit.
+    shell: chdir="{{ application_userhome }}" su -c 'python "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
     with_items:
       - { filename: "historique_to_kafka.py", args: ""}
       - { filename: "kafka_historique_to_elastic.py", args: ""}
@@ -44,6 +45,6 @@
 
   - name: run java scripts in background
     become: yes
-    shell: chdir="{{ application_userhome }}" runuser -l {{ application_username }} -c 'java -jar "{{ item.filename }}" {{ item.args }}' </dev/null >/dev/null 2>&1 &
+    shell: chdir="{{ application_userhome }}" su -c 'java -jar  "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
     with_items:
       - { filename: "sparkStream-1.0.jar", args: ""}

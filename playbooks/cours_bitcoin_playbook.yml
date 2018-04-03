@@ -25,6 +25,15 @@
       - kafka
       - requests
       - pyspark
+  - name: kill running scripts
+    become: yes
+    ignore_errors: True
+    shell: ps aux | grep -ie {{ item }} | grep -v grep | awk '{print $2}' | xargs kill -9
+    with_items:
+      - historique_to_kafka.py
+      - kafka_historique_to_elastic.py
+      - price_index_to_kafka_realtime.py
+      - sparkStream-1.0.jar
   - name: run python scripts in background
     become: yes
     shell: chdir="{{ application_userhome }}" runuser -l {{ application_username }} -c 'python "{{ item.filename }}" {{ item.args }}' </dev/null >/dev/null 2>&1 &

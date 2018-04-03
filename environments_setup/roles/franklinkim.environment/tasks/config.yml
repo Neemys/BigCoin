@@ -15,9 +15,11 @@
     regexp: '^{{ item.key }}\ ?='
     state: absent
   with_dict: "{{ environment_config }}"
+  no_log: True
 
 - name: Configuring environment
   lineinfile:
     dest: "{{ environment_file }}"
     line: "{{ item.key }}='{{ item.value }}'"
   with_dict: "{{ environment_config }}"
+  no_log: True

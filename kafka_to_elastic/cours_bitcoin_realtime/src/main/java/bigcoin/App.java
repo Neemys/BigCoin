@@ -50,9 +50,6 @@ public class App
         if(System.getenv("ES_HOST") != null) {
             host_es = System.getenv("ES_HOST");
         }
-        if(System.getenv("ES_PORT") != null) {
-            port_es = Integer.parseInt(System.getenv("ES_PORT"));
-        }
 
         // Initialize Spark config and context
         SparkConf sparkConf = new SparkConf().setAppName("SparkStreamKafka").setMaster("local[2]");

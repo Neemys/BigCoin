@@ -96,7 +96,7 @@ public class App
                     jsonObject = jsonObject.getJSONObject("x");
 
                     Date date = new Date(jsonObject.getLong("time") * 1000);
-                    //long tx_index = jsonObject.getLong("tx_index");
+                    long tx_index = jsonObject.getLong("tx_index");
 
                     // Get the sum of the inputs values
                     JSONArray jsonArray = jsonObject.getJSONArray("inputs");
@@ -112,8 +112,8 @@ public class App
                     List<Object> values = new ArrayList();
                     values.add("date");
                     values.add(date);
-                    //values.add("tx_index");
-                    //values.add(tx_index);
+                    values.add("tx_index");
+                    values.add(tx_index);
                     values.add("value");
                     values.add(doubleValue);
                     values.add("data_type");

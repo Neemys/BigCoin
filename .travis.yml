@@ -39,9 +39,11 @@ install:
 - openssl aes-256-cbc -K $encrypted_af7caec4de64_key -iv $encrypted_af7caec4de64_iv
   -in environments_setup/ssh/ansible.enc -out ~/.ssh/id_rsa -d
 - sudo chmod 0600 ~/.ssh/id_rsa
+#Shouldn't be here, but workaround to be executed in branch 'develop' jobs
+- cd kafka_to_elastic/cours_bitcoin_realtime/
+- mvn package -DskipTests=true
 script:
+- cd $TRAVIS_BUILD_DIR
 - export PYTHONPATH=$(pwd)/big_coin_common_module/src
 - pytest
 before_deploy:
-- cd kafka_to_elastic/cours_bitcoin_realtime/
-- mvn package -DskipTests=true

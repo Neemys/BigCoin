@@ -88,7 +88,7 @@ public class App
                 TransportClient client = new PreBuiltXPackTransportClient(settings)
                         .addTransportAddress(new TransportAddress(InetAddress.getByName(host_es), port_es));
 
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, uuuu HH:mm:ss zzz", Locale.US);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, uuuu HH:mm:ss zzz", Locale.US);
 
                 while (partitionOfRecords.hasNext()) {
 
@@ -113,7 +113,7 @@ public class App
                     values.add("temps_reel");
 
                     // Insert data in ES
-                    IndexResponse reponse = client.prepareIndex("cours_btc_idx", "cours_btc")
+                    IndexResponse reponse = client.prepareIndex("cours_btc_idx", "cours_btc", date)
                             .setSource(values.toArray())
                             .get();
 

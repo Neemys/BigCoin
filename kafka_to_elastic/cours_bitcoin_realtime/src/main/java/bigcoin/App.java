@@ -113,7 +113,7 @@ public class App
                     values.add("temps_reel");
 
                     // Insert data in ES
-                    IndexResponse reponse = client.prepareIndex("cours_btc_idx", "cours_btc", date)
+                    IndexResponse reponse = client.prepareIndex("cours_btc_idx", "cours_btc", strDate)
                             .setSource(values.toArray())
                             .get();
 

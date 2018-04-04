@@ -45,7 +45,7 @@ public class App
 
         // Get user and password from system variable
         String es_user = System.getenv("ES_ADMIN_USER");
-        String es_pwd = System.getenv("ES_ADMIN_PASSWORD");
+        String es_pwd = System.getenv("ES_ADMIN_PASS");
         // Get elastic host and port from system variable
         if(System.getenv("ES_HOST") != null) {
             host_es = System.getenv("ES_HOST");

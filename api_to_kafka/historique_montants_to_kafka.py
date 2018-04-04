@@ -1,97 +1,62 @@
 import requests
-from datetime import date, timedelta
 import datetime
-import time
-import json
+import calendar
 import sys
-from kafka import KafkaProducer
-
-# Default values
-date_search = str(datetime.date.today())
-
-# Input values
-# date to search data for
-if (len(sys.argv) >= 2):
-    date_search = sys.argv[1]
-
-
-def get_single_block(block_id):
-    url_block = 'https://blockchain.info/rawblock/' + str(block_id)
-    res_block = requests.get(url_block)
-    if res_block.status_code == 200:
-        return res_block
-    else:
-        return None
-
-
-def get_blocks_for_day(date_blocks_in_ms):
-    url_blocks = 'https://blockchain.info/blocks/' + str(date_blocks_in_ms) + '?format=json'
-    res_blocks = requests.get(url_blocks)
-    if res_blocks.ok:
-        return res_blocks
-    else:
-        return None
-
-
-def get_transactions_from_block(data_block):
-    for i in range(len(data_block['tx'])):
-        if 'inputs' in data_block['tx'][i]:
-            if 'prev_out' in data_block['tx'][i]['inputs'][0]:
-                tx_index = data_block['tx'][i]['inputs'][0]['prev_out']['tx_index']
-                value_tx_in_satoshi = data_block['tx'][i]['inputs'][0]['prev_out']['value']
-
-                date_event_in_ms = data_block['tx'][i]['time']
-                date_event = datetime.datetime.fromtimestamp(date_event_in_ms)
-                yield {
-                    '_index': 'montants_tx_idx_test',
-                    '_type': 'montants_tx_test',
-                    '_id': tx_index,
-                    '_source': {
-                        'date': date_event,
-                        'tx_index': tx_index,
-                        'valeur_tx': float(value_tx_in_satoshi) / 100000000,
-                    }
-                }
-
-
-def convert_date_in_ms(date):
-    # timestamp = int(time.mktime(datetime.datetime.strptime(date, "%Y-%m-%d").timetuple()))
-    timestamp = int(time.mktime(date.timetuple()))
-    date_in_ms = (timestamp + 3600) * 1000
-    return date_in_ms
-
+import bigcoin.date as bcdate
+import bigcoin.persistence as bcpersist
+from bigcoin import bc_kafka, webservice
+import time
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
-        yield start_date + timedelta(n)
+        yield start_date + datetime.timedelta(days=n)
 
+# generate kafka message from list of messages
+def generate_kafka_message_from_list(messages):
+    for message in messages:
+        yield message['message'],message['key'],message['timestamp_ms']
 
 def main():
+    filename = "historique_montants_to_kafka.bcdata"
+    isLastDateReset = False
+    #Check if we must reset the last date
+    if (len(sys.argv) >= 2):
+        isLastDateReset = sys.argv[1] == "reset"
+    #default value for starting date
+    start_date = datetime.datetime(2018,03,01)
 
-    # Connect to Kafka
-    producer = KafkaProducer(acks=1, max_request_size=10000000, bootstrap_servers='localhost:9092')
+    if not isLastDateReset:
+    	maybe_start_date = bcpersist.get_date_from_file(filename)
+    	maybe_start_date = bcdate.get_datetime_from_string(bcdate.increment_a_day_from_date_as_string(maybe_start_date))
+    	if maybe_start_date is not None:
+    		start_date = maybe_start_date
 
-    # Assign a topic
-    topic = 'transaction-historique'
+    end_date = datetime.datetime.today()
 
-    # Date range to get data from
-    date_search = datetime.datetime.strptime('2018-03-25', "%Y-%m-%d").date()
-    start_date = datetime.datetime.strptime('2018-01-01', "%Y-%m-%d").date()
-    end_date = datetime.datetime.strptime('2018-03-20', "%Y-%m-%d").date()
-
-    # For each day in date range, send each block to Kafka
-    for single_date in daterange(start_date, end_date):
-
-        res_blocks = get_blocks_for_day(convert_date_in_ms(single_date))
-        data_blocks = res_blocks.json()
-
+    # For each day in date range, send to kafka and update last day fetched
+    for date_current_day in daterange(start_date, end_date):
+        time.sleep(10) # need to wait 10 second per api request
+        # get all block of the day
+        url_blocks_of_the_day = 'https://blockchain.info/blocks/' + str(calendar.timegm(date_current_day.timetuple())*1000) + '?format=json'
+        data_blocks = webservice.get_json_from_address(url_blocks_of_the_day)
+        # get all wanted data from each block and create messages to send to kafka
+        messages = []
         for i in range(len(data_blocks["blocks"])):
-
-            res = get_single_block(data_blocks["blocks"][i]['hash'])
-            if (res != None):
-                data = res.json()
-                producer.send(topic, str(data))
-
-
+            time.sleep(10) # need to wait 10 second per api request
+            url_current_block = 'https://blockchain.info/rawblock/' + str(data_blocks["blocks"][i]['hash'])
+            current_block_data = webservice.get_json_from_address(url_current_block)
+            for j in range(len(current_block_data['tx'])):
+                if 'inputs' in current_block_data['tx'][j]:
+                    if 'prev_out' in current_block_data['tx'][j]['inputs']:
+                        tx_index = current_block_data['tx'][j]['inputs']['tx_index']
+                        date_event_in_ms = current_block_data['tx'][j]['time']
+                        value_tx_in_satoshi = 0
+                        for input_tx in current_block_data['tx'][j]['inputs']:
+                            value_tx_in_satoshi += input_tx['prev_out']['value']
+                        messages.append({'message':'{"index":"'+str(tx_index)+'","value":'+str(value_tx_in_satoshi)+',timestamp_ms:'+str(date_event_in_ms)+'}','key':None,'timestamp_ms':date_event_in_ms})
+        # send messages to kafka
+        bc_kafka.send_to_topic_from_generator("historique_montants","python_historique_montants_producer",generate_kafka_message_from_list(messages))
+        #Set the last processed date
+        bcpersist.save_date_to_file(filename,bcdate.get_date_string_yyyy_mm_dd_from_datetime(date_current_day))
 if __name__ == '__main__':
     main()

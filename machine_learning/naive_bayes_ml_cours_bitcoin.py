@@ -3,27 +3,36 @@ import datetime
 from datetime import timedelta
 from pyspark.sql import SparkSession, Row
 from pyspark.ml.feature import CountVectorizer, StringIndexer
-from pyspark.ml.classification import NaiveBayes
+from pyspark.ml.classification import NaiveBayes, NaiveBayesModel
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from pyspark.ml import Pipeline, PipelineModel
 import requests
 from elasticsearch import Elasticsearch
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from util_ml import get_next_day, filter_text, get_aggregated_text, format_data
 
+# Stopwords list and char to remove for formatting text
 STOPWORDS = set(stopwords.words('english'))
 CHAR_TO_REMOVE = ',.:;?!"()'
+# API key for GoogleNews API
 API_KEYS = 'your API key'
 API_KEYS = sys.argv[1]
-SPLIT_WEIGHT = 0.6
-# default values
+# Weight for splitting data in training data and testing data 
+SPLIT_WEIGHT = 0.7
+# default values for elasticseach
 es_host = 'localhost' 
 es_port = 9200
-es_index = 'cours_btc_idx_test'
-es_doc_type = 'cours_btc_test'
+es_index = 'cours_btc_idx_ml'
+es_doc_type = 'cours_btc_ml'
+# Date search for prediction, one day or range
 date_predict = '2018-03-29'
+date_predict_end = ''
 if (len(sys.argv) >= 3):
 	date_predict = sys.argv[2]
+if (len(sys.argv) >= 4):
+	date_predict_end = sys.argv[3]
+# Model path to save or load NaiveBayes model
+model_path = "./model"
 
 #Initialize SparkSession
 spark = SparkSession \
@@ -33,17 +42,6 @@ spark = SparkSession \
 	.getOrCreate()
 sc = spark.sparkContext
 
-
-def convert(input):
-    if isinstance(input, dict):
-        return dict((convert(key), convert(value)) for key, value in input.iteritems())
-    elif isinstance(input, list):
-        return [convert(element) for element in input]
-    elif isinstance(input, unicode):
-        return input.encode('utf-8')
-    else:
-        return input
-	
 def get_next_day(date_str):
 	date = datetime.datetime.strptime(date_str, "%Y-%m-%d")
 	next_day = date + timedelta(days=1)
@@ -64,7 +62,7 @@ def retrieve_raw_data_day(date_str):
        'from='+date_early+'&'
 	   'to='+date_late+'&'
        'sortBy=relevance&'
-	   'pageSize=10&'
+	   'pageSize=100&'
 	   'page=1&'
        'apiKey='+API_KEYS)
 	  
@@ -99,21 +97,13 @@ def get_aggregated_text(formatted_data):
 def format_data(raw_data):
 	formatted_data = []
 	for i in range (len(raw_data['articles'])):
-		#text_article = (raw_data["articles"][i]["title"])+' '+(raw_data["articles"][i]["description"])
-		text_article = (raw_data["articles"][i]["description"])
-		if text_article == None:
-			return None
-		formatted_words_list = filter_text(text_article)
-		date_article = (raw_data["articles"][i]["publishedAt"])
-		formatted_data.append((date_article, formatted_words_list))
-	return formatted_data
-	
-def extract_features(list_words):
-	return vector
-	
-def prepare_data(rdd):
-	rdd = rdd.map(lambda (indice, list): LabeledPoint(indice, extract_features(list)))
-	return rdd
+		text_article = (raw_data["articles"][i]["title"])
+		#text_article = (raw_data["articles"][i]["description"])
+		if text_article != None:
+			formatted_words_list = filter_text(text_article)
+			date_article = (raw_data["articles"][i]["publishedAt"])
+			formatted_data.append((date_article, formatted_words_list))
+	return formatted_data	
 	
 def split_data(rdd):
 	(rdd_train, rdd_test) = rdd.randomSplit([SPLIT_WEIGHT, 1.0 - SPLIT_WEIGHT])
@@ -130,11 +120,6 @@ def get_data_day(date_str):
 			return data_list_search
 	return None
 	
-def predict_result(df):
-	# 1.0 bitcoin cours up
-	# 0.0 bitcoin cours down
-	return 1.0
-	
 def get_variation_value(date_str, date_next_str):
 	date = date_str
 	date_suiv = date_next_str
@@ -146,89 +131,85 @@ def get_variation_value(date_str, date_next_str):
 	
 	difference = valeur_day_next - valeur_day
 	return float(1) if difference >= 0 else float(0)
-	
-def main():
-	date_start = '2018-03-01'
-	date_end = '2018-03-27'
+
+def train_naive_bayes_model():
+	# Date range for retrieving data
+	date_start = '2018-02-01'
+	date_end = '2018-03-01'
 	date_search = date_start
-	
+	# Create tuple (date, wordslist) containing date and list of words from articles
 	tuples_list = []
 	while (date_search != date_end):
-		# print (date_search)
-		'''data_day = retrieve_raw_data_day(date_search)
-		if data_day != None:
-			formatted_data = format_data(data_day)
-			if formatted_data != None:
-				data_list = get_aggregated_text(formatted_data)
-				#data_list = [mot.encode('utf-8') for mot in data_list]
-				# print data_list
-				diff = get_variation_value(date_search, get_next_day(date_search))
-				diff_wordslist = (diff, data_list)'''
 		wordslist = get_data_day(date_search)
 		if wordslist != None:
 			diff = get_variation_value(date_search, get_next_day(date_search))
 			diff_wordslist = (diff, wordslist)
 			tuples_list.append(diff_wordslist)
 		date_search = get_next_day(date_search)
-	
-	# print tuples_list
-	#rdd to dataframe
+	# Create dataframe from data retrieved
 	rdd = sc.parallelize(tuples_list)
-	rdd = rdd.map(lambda (indice, list): Row(diff=indice, words=list))
+	rdd = rdd.map(lambda tuple: Row(diff=tuple[0], words=tuple[1]))
 	df_train, df_test = split_data(rdd)
-	#df_data = spark.createDataFrame(rdd)
 	
-	# Vectorizer : extract features from list of words
-	# Estimator type CountVectorizer
+	print ('test')
+	# Naive Bayes Model Pipeline : CountVectorizer, StringIndexer, NaiveBayes
 	count_vectorizer = CountVectorizer(inputCol='words', outputCol='features')
-	vectorizer_transformer = count_vectorizer.fit(df_train)
-	
-	# Apply Transformer
-	train_bag_of_words = vectorizer_transformer.transform(df_train)
-	test_bag_of_words = vectorizer_transformer.transform(df_test)
-	
-	# Indexer : extract label from difference in value from two days
-	# Indexer for indexing difference value, up or down (constant ?)
 	label_indexer = StringIndexer(inputCol='diff', outputCol='label_index')
-	label_indexer_transformer = label_indexer.fit(train_bag_of_words)
-	
-	# Apply transformer
-	train_bag_of_words = label_indexer_transformer.transform(train_bag_of_words)
-	test_bag_of_words = label_indexer_transformer.transform(test_bag_of_words)
-	
-	# Classifier type : NaiveBayes
-	# Train
 	classifier = NaiveBayes(labelCol='label_index', featuresCol='features', predictionCol='label_predicted')
-	classifier_transformer = classifier.fit(train_bag_of_words)
-	# Apply classifier trained on test data
-	# Test
-	test_predicted = classifier_transformer.transform(test_bag_of_words)
+	
+	pipeline = Pipeline(stages=[count_vectorizer, label_indexer, classifier])
+	pipeline_model = pipeline.fit(df_train)
+	# Save model in local fs
+	model_path = "./model"
+	pipeline_model.write().overwrite().save(model_path)
+	print ("Save Model")
+	# Apply model on test data
+	test_predicted = pipeline_model.transform(df_test)
+	
 	# Evaluator
-	# Evaluation
+	# Evaluate prediction accuracy on test data
 	evaluator = MulticlassClassificationEvaluator(labelCol='label_index', predictionCol='label_predicted', metricName='accuracy')
 	accuracy = evaluator.evaluate(test_predicted)
 	
 	print ('Accuracy : '+ str(accuracy*100)+'%')
-	
-	# Predict specific day
-	date_predict = '2018-03-26'
-	wordlist_predict = get_data_day(date_predict)
-	tuple = (0.0, wordlist_predict)
+
+def predict_bitcoin_cours_date(date_predict_start, date_predict_end = ""):
+	# Date range for retrieving data
+	date_start = date_predict_start
+	if date_predict_end == "":
+		date_end = get_next_day(date_start)
+	else:
+		date_end = date_predict_end
+	date_search = date_start
+	# Create tuple (date, wordslist) containing date and list of words from articles
 	table = []
-	table.append(tuple)
+	while (date_search != date_end):
+		wordslist_predict = get_data_day(date_search)
+		if wordslist_predict != None:
+			tuple = (0.0, wordslist_predict, date_search)
+			table.append(tuple)
+		date_search = get_next_day(date_search)
 	
 	rdd_predict = sc.parallelize(table)
-	rdd_predict = rdd_predict.map(lambda (indice, list): Row(diff=indice, words=list))
+	rdd_predict = rdd_predict.map(lambda tuple: Row(diff=tuple[0], words=tuple[1], date_search=tuple[2]))
 	df_predict = spark.createDataFrame(rdd_predict)
 	
-	df_predict_vect = vectorizer_transformer.transform(df_predict)
-	df_predict = label_indexer_transformer.transform(df_predict_vect)
-	df_predicted = classifier_transformer.transform(df_predict)
+	#df_predict_vect = vectorizer_transformer.transform(df_predict)
+	#df_predict = label_indexer_transformer.transform(df_predict_vect)
+	#df_predicted = classifier_transformer.transform(df_predict)
 	
-	print ('Resultat prediction pour le jour '+date_search)
+	model_path = "./model"
+	pipeline_model = PipelineModel.load(model_path)
+	df_predicted = pipeline_model.transform(df_predict)
+	
+	#print ('Resultat prediction pour le jour '+date_predict)
 	df_predicted.show()
 	
+def main():
+	date_predict = '2018-03-31'
+	date_predict_end = ''
+	train_naive_bayes_model()
+	predict_bitcoin_cours_date(date_predict, date_predict_end)
 
 if __name__ == "__main__":
 	main()
-

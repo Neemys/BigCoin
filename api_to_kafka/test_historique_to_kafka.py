@@ -65,15 +65,6 @@ class HistoriqueToKafkaTest(unittest.TestCase):
 			sendNothing2 = True
 		assert sendNothing2
 
-	def  test_is_date_webservice_valid(self):
-		self.assertTrue(is_date_webservice_valid("2011-05-22"))
-		self.assertFalse(is_date_webservice_valid("2011.05.22"))
-		self.assertFalse(is_date_webservice_valid("2011_05_22"))
-		self.assertFalse(is_date_webservice_valid("11-05-22"))
-		self.assertFalse(is_date_webservice_valid("2011-5-22"))
-		self.assertFalse(is_date_webservice_valid("2011-05-2"))
-		self.assertFalse(is_date_webservice_valid(""))
-		self.assertFalse(is_date_webservice_valid(54))
 
 if __name__ == "__main__":
 	unittest.main()

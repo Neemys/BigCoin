@@ -29,7 +29,7 @@ def generate_data_for_kafka_from_json(json_data):
 
 # Test if a date format is valid for the webservice.
 def is_date_webservice_valid(date_string):
-	if date_y_m_d_pattern.match(date_string):
+	if isinstance(date_string, basestring) and date_y_m_d_pattern.match(date_string):
 		return True
 	return False
 

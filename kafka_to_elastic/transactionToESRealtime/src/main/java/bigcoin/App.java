@@ -112,15 +112,13 @@ public class App
                     List<Object> values = new ArrayList();
                     values.add("date");
                     values.add(date);
-                    values.add("tx_index");
-                    values.add(tx_index);
                     values.add("value");
                     values.add(doubleValue);
                     values.add("data_type");
                     values.add("temps_reel");
 
                     // Insert data in ES
-                    IndexResponse reponse = client.prepareIndex("transaction_idx3", "transaction")
+                    IndexResponse reponse = client.prepareIndex("transaction_idx", "transaction")
                             .setSource(values.toArray())
                             .get();
 

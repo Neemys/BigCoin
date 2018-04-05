@@ -1,0 +1,27 @@
+---
+galaxy_info:
+  author: Andrew Rothstein
+  description: apache kafka role
+  company: BlackRock
+  license:
+    - MIT
+  min_ansible_version: 1.2
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+
+  galaxy_tags:
+    - kafka
+    - queue
+    - cqrs
+
+dependencies:
+  - role: andrewrothstein.unarchive-deps
+    version: v1.0.9

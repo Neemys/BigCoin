@@ -1,0 +1,20 @@
+
+
+- name: "Create application user"
+  become: yes
+  user:
+    name: "{{ application_username }}"
+    state: present
+    system: yes
+    home: "{{ application_userhome }}"
+# Will error if user has running processes, since it only happen when created we can safely ignore when it happen
+  ignore_errors: true
+
+- name: "Copy common module"
+  become: yes
+  copy:
+    src: "{{ playbook_dir }}/../big_coin_common_module/src/bigcoin"
+    dest: "{{ application_userhome }}/"
+    force: yes
+    group: "{{ application_usergroup }}"
+    owner: "{{ application_username }}"

@@ -9,18 +9,43 @@ addons:
       - oracle-java8-set-default
 
 dist: trusty
+sudo: required
+
 stages:
   - install
   - test
   - name: before_deploy
     if: branch in (develop, master) and type = push
+  - deploy
 
+jobs:
+  include:
+    - stage: test
+      script: $TRAVIS_BUILD_DIR/environments_setup/scripts/check_playbooks
+    - stage: deploy
+      script: $TRAVIS_BUILD_DIR/environments_setup/scripts/setup_integration
+      if: branch = develop and type = push
+    - stage: deploy
+      script: $TRAVIS_BUILD_DIR/environments_setup/scripts/setup_production
+      if: branch = master and type = push
+
+before_install:
+- sudo apt-get update -qq
 install:
 - pip install -r requirements.txt
+- pip install ansible==2.4.3.0
+- openssl aes-256-cbc -K $encrypted_e13c462cd0ef_key -iv $encrypted_e13c462cd0ef_iv
+  -in environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml.enc -out environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml -d
+- openssl aes-256-cbc -K $encrypted_af7caec4de64_key -iv $encrypted_af7caec4de64_iv
+  -in environments_setup/ssh/ansible.enc -out ~/.ssh/id_rsa -d
+- sudo chmod 0600 ~/.ssh/id_rsa
 #Shouldn't be here, but workaround to be executed in branch 'develop' jobs
-- cd kafka_to_elastic/transactionToESRealtime/
+- cd kafka_to_elastic/cours_bitcoin_realtime/
+- mvn package -DskipTests=true
+- cd $TRAVIS_BUILD_DIR/kafka_to_elastic/transactionToESRealtime/
 - mvn package -DskipTests=true
 script:
 - cd $TRAVIS_BUILD_DIR
 - export PYTHONPATH=$(pwd)/big_coin_common_module/src
 - pytest
+before_deploy:

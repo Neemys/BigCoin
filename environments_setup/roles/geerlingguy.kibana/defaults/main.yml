@@ -1,0 +1,11 @@
+---
+kibana_version: "4.6"
+kibana_version_apt: "6.2.2"
+
+kibana_server_port: 5601
+kibana_server_host: "0.0.0.0"
+
+kibana_elasticsearch_url: "http://localhost:9200"
+
+kibana_es_user: ""
+kibana_es_password: ""

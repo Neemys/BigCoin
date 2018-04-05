@@ -1,0 +1,4 @@
+requests
+mock
+kafka
+elasticsearch

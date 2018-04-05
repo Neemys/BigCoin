@@ -17,7 +17,7 @@ stages:
   - name: before_deploy
     if: branch in (develop, master) and type = push
   - deploy
-  
+
 jobs:
   include:
     - stage: test
@@ -41,6 +41,8 @@ install:
 - sudo chmod 0600 ~/.ssh/id_rsa
 #Shouldn't be here, but workaround to be executed in branch 'develop' jobs
 - cd kafka_to_elastic/cours_bitcoin_realtime/
+- mvn package -DskipTests=true
+- cd $TRAVIS_BUILD_DIR/kafka_to_elastic/transactionToESRealtime/
 - mvn package -DskipTests=true
 script:
 - cd $TRAVIS_BUILD_DIR

@@ -4,12 +4,12 @@ python:
 - '3.6'
 
 before_install:
-  - openssl aes-256-cbc -K $encrypted_fedee2a0b6cd_key -iv $encrypted_fedee2a0b6cd_iv
-  -in googleapi.enc -out ..\\googleapi -d
+  - openssl aes-256-cbc -K $encrypted_fedee2a0b6cd_key -iv $encrypted_fedee2a0b6cd_iv -in googleapi.enc -out ..\\googleapi -d
   
 install:
   - pip install -r requirements.txt
   
 scripts:
+  - cd $TRAVIS_BUILD_DIR
   - export PYSPARK_PYTHON=python3
   - python machine_learning/download_nltk_stopwords_wordnet.py

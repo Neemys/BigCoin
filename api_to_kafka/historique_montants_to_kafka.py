@@ -47,13 +47,14 @@ def main():
             current_block_data = webservice.get_json_from_address(url_current_block)
             for j in range(len(current_block_data['tx'])):
                 if 'inputs' in current_block_data['tx'][j]:
-                    if 'prev_out' in current_block_data['tx'][j]['inputs']:
-                        tx_index = current_block_data['tx'][j]['inputs']['tx_index']
-                        date_event_in_ms = current_block_data['tx'][j]['time']
-                        value_tx_in_satoshi = 0
-                        for input_tx in current_block_data['tx'][j]['inputs']:
+                    tx_index = current_block_data['tx'][j]['tx_index']
+                    date_event_in_s = current_block_data['tx'][j]['time']
+                    value_tx_in_satoshi = 0
+                    for input_tx in current_block_data['tx'][j]['inputs']:
+                        if 'prev_out' in input_tx:
                             value_tx_in_satoshi += input_tx['prev_out']['value']
-                        messages.append({'message':'{"index":"'+str(tx_index)+'","value":'+str(value_tx_in_satoshi)+',timestamp_ms:'+str(date_event_in_ms)+'}','key':None,'timestamp_ms':date_event_in_ms})
+                    if value_tx_in_satoshi != 0:
+                        messages.append({'message':'{"index":"'+str(tx_index)+'","value":'+str(value_tx_in_satoshi)+',"timestamp":'+str(date_event_in_s)+'}','key':None,'timestamp_ms':date_event_in_s*1000})
         # send messages to kafka
         bc_kafka.send_to_topic_from_generator("historique_montants","python_historique_montants_producer",generate_kafka_message_from_list(messages))
         #Set the last processed date

@@ -1,7 +1,7 @@
 import sys
 import datetime
 from bigcoin import bc_elasticsearch
-from datetime import timedelta
+from datetime import date, timedelta
 from pyspark.sql import SparkSession, Row
 from pyspark.ml.feature import CountVectorizer, StringIndexer
 from pyspark.ml.classification import NaiveBayes, NaiveBayesModel
@@ -21,12 +21,10 @@ API_KEYS = sys.argv[1]
 # Weight for splitting data in training data and testing data 
 SPLIT_WEIGHT = 0.7
 # default values for elasticseach
-es_host = 'localhost' 
-es_port = 9200
-es_index = 'cours_btc_idx_ml'
-es_doc_type = 'cours_btc_ml'
+es_index = 'cours_btc_idx'
+es_doc_type = 'cours_btc'
 # Date search for prediction, one day or range
-date_predict = '2018-04-01'
+date_predict = str(datetime.date.today())
 date_predict_end = ''
 input_arg = '0'
 if (len(sys.argv) >= 3):
@@ -80,7 +78,6 @@ def retrieve_raw_data_day(date_str):
 		return None
 		# sys.exit(20)
 
-#To do: filter number
 def filter_text(text):
 	#tokenize text
 	list_mots = text.lower().split(' ')
@@ -104,7 +101,6 @@ def format_data(raw_data):
 	formatted_data = []
 	for i in range (len(raw_data['articles'])):
 		text_article = (raw_data["articles"][i]["title"])
-		#text_article = (raw_data["articles"][i]["description"])
 		if text_article != None:
 			formatted_words_list = filter_text(text_article)
 			date_article = (raw_data["articles"][i]["publishedAt"])
@@ -121,8 +117,6 @@ def get_data_day(date_str):
 		formatted_data_search = format_data(data_search)
 		if formatted_data_search != None:
 			data_list_search = get_aggregated_text(formatted_data_search)
-			# diff_day = get_variation_value(date_str, get_next_day(date_str))
-			# diff_wordslist_search = (diff_day, data_list_search)
 			return data_list_search
 	return None
 	
@@ -204,7 +198,9 @@ def predict_bitcoin_cours_date(date_predict_start, date_predict_end = ""):
 	df_predicted = pipeline_model.transform(df_predict)
 	
 	#print ('Resultat prediction pour le jour '+date_predict)
-	df_predicted.select(df_predicted["date_search"], df_predicted["label_predicted"]).show()
+	df_filtered = df_predicted.select(df_predicted["date_search"], df_predicted["label_predicted"])
+	df_filtered.write.save(path='./predicted_value', mode='overwrite')
+	df_filtered.show()
 	
 def main():
 	if input_arg == '0':

@@ -19,9 +19,10 @@ while(1):
 
     # Get first transaction of block and send it to Kafka
     block = requests.get("https://blockchain.info/fr/rawblock/" + str(id_block))
-    # transaction = block.json()["tx"][0]
-    # producer.send_messages(topic, str(transaction.text))
-    producer.send_messages(topic, str(block.text))
+
+    jsonFile = block.json()["tx"][0]
+
+    producer.send_messages(topic, json.dumps(jsonFile))
 
     # Wait for the next block
     while id_block == requests.get("https://blockchain.info/fr/latestblock").json()["block_index"]:

@@ -47,8 +47,8 @@ public class App
         }
 
         // Get user and password from system variable
-        String es_user = System.getenv("ES_ADMIN_USER");
-        String es_pwd = System.getenv("ES_ADMIN_PASSWORD");
+        //String es_user = System.getenv("ES_ADMIN_USER");
+        //String es_pwd = System.getenv("ES_ADMIN_PASSWORD");
 
         // Initialize Spark config and context
         SparkConf sparkConf = new SparkConf().setAppName("SparkStreamKafka").setMaster("local[2]");
@@ -80,9 +80,9 @@ public class App
                 System.setProperty("es.set.netty.runtime.available.processors", "false");
 
                 // Initialize ES client
-                Settings settings = Settings.builder().put("xpack.security.user", es_user+":"+es_pwd).build();
-                TransportClient client = new PreBuiltXPackTransportClient(settings)
-                //TransportClient client = new PreBuiltTransportClient(Settings.EMPTY)
+                //Settings settings = Settings.builder().put("xpack.security.user", es_user+":"+es_pwd).build();
+                //TransportClient client = new PreBuiltXPackTransportClient(settings)
+                TransportClient client = new PreBuiltTransportClient(Settings.EMPTY)
                         .addTransportAddress(new TransportAddress(InetAddress.getByName(host_es), port_es));
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, uuuu HH:mm:ss zzz", Locale.US);
@@ -93,8 +93,6 @@ public class App
 
                     // Create a JSON from value of the record
                     JSONObject jsonObject = new JSONObject(partitionOfRecords.next().value());
-
-                    jsonObject = jsonObject.getJSONArray("tx").getJSONObject(0);
 
                     Date date = new Date(jsonObject.getLong("time") * 1000);
 

@@ -1,5 +1,6 @@
 import sys
 import datetime
+from bigcoin import bc_elasticsearch
 from datetime import timedelta
 from pyspark.sql import SparkSession, Row
 from pyspark.ml.feature import CountVectorizer, StringIndexer
@@ -25,14 +26,18 @@ es_port = 9200
 es_index = 'cours_btc_idx_ml'
 es_doc_type = 'cours_btc_ml'
 # Date search for prediction, one day or range
-date_predict = '2018-03-29'
+date_predict = '2018-04-01'
 date_predict_end = ''
+input_arg = '0'
 if (len(sys.argv) >= 3):
-	date_predict = sys.argv[2]
+	input_arg = sys.argv[2]
 if (len(sys.argv) >= 4):
-	date_predict_end = sys.argv[3]
+	date_predict = sys.argv[3]
+if (len(sys.argv) >= 5):
+	date_predict_end = sys.argv[4]
 # Model path to save or load NaiveBayes model
 model_path = "./model"
+
 
 #Initialize SparkSession
 spark = SparkSession \
@@ -49,8 +54,9 @@ def get_next_day(date_str):
 	return next_date_str
 		
 def retrieve_bitcoin_cours(date_str):
-	es = Elasticsearch([{'host': es_host, 'port': es_port}])
-	res = es.get(index=es_index, doc_type=es_doc_type, id=date_str)
+	bc_es = bc_elasticsearch.BCElasticsearch()
+	# es = Elasticsearch([{'host': es_host, 'port': es_port}])
+	res = bc_es._es.get(index=es_index, doc_type=es_doc_type, id=date_str)
 	return res
 
 def retrieve_raw_data_day(date_str):
@@ -135,7 +141,7 @@ def get_variation_value(date_str, date_next_str):
 def train_naive_bayes_model():
 	# Date range for retrieving data
 	date_start = '2018-02-01'
-	date_end = '2018-03-01'
+	date_end = '2018-04-01'
 	date_search = date_start
 	# Create tuple (date, wordslist) containing date and list of words from articles
 	tuples_list = []
@@ -151,7 +157,6 @@ def train_naive_bayes_model():
 	rdd = rdd.map(lambda tuple: Row(diff=tuple[0], words=tuple[1]))
 	df_train, df_test = split_data(rdd)
 	
-	print ('test')
 	# Naive Bayes Model Pipeline : CountVectorizer, StringIndexer, NaiveBayes
 	count_vectorizer = CountVectorizer(inputCol='words', outputCol='features')
 	label_indexer = StringIndexer(inputCol='diff', outputCol='label_index')
@@ -162,7 +167,7 @@ def train_naive_bayes_model():
 	# Save model in local fs
 	model_path = "./model"
 	pipeline_model.write().overwrite().save(model_path)
-	print ("Save Model")
+
 	# Apply model on test data
 	test_predicted = pipeline_model.transform(df_test)
 	
@@ -194,22 +199,18 @@ def predict_bitcoin_cours_date(date_predict_start, date_predict_end = ""):
 	rdd_predict = rdd_predict.map(lambda tuple: Row(diff=tuple[0], words=tuple[1], date_search=tuple[2]))
 	df_predict = spark.createDataFrame(rdd_predict)
 	
-	#df_predict_vect = vectorizer_transformer.transform(df_predict)
-	#df_predict = label_indexer_transformer.transform(df_predict_vect)
-	#df_predicted = classifier_transformer.transform(df_predict)
-	
 	model_path = "./model"
 	pipeline_model = PipelineModel.load(model_path)
 	df_predicted = pipeline_model.transform(df_predict)
 	
 	#print ('Resultat prediction pour le jour '+date_predict)
-	df_predicted.show()
+	df_predicted.select(df_predicted["date_search"], df_predicted["label_predicted"]).show()
 	
 def main():
-	date_predict = '2018-03-31'
-	date_predict_end = ''
-	train_naive_bayes_model()
-	predict_bitcoin_cours_date(date_predict, date_predict_end)
+	if input_arg == '0':
+		train_naive_bayes_model()
+	if input_arg == '1':
+		predict_bitcoin_cours_date(date_predict, date_predict_end)
 
 if __name__ == "__main__":
 	main()

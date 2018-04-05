@@ -1,0 +1,26 @@
+language: python
+
+python:
+- '2.7'
+
+addons:
+  apt:
+    packages:
+      - oracle-java8-set-default
+
+dist: trusty
+stages:
+  - install
+  - test
+  - name: before_deploy
+    if: branch in (develop, master) and type = push
+
+install:
+- pip install -r requirements.txt
+#Shouldn't be here, but workaround to be executed in branch 'develop' jobs
+- cd kafka_to_elastic/transactionToESRealtime/
+- mvn package -DskipTests=true
+script:
+- cd $TRAVIS_BUILD_DIR
+- export PYTHONPATH=$(pwd)/big_coin_common_module/src
+- pytest

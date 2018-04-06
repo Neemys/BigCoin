@@ -35,7 +35,7 @@ install:
 - pip install -r requirements.txt
 - pip install ansible==2.4.3.0
 - openssl aes-256-cbc -K $encrypted_e13c462cd0ef_key -iv $encrypted_e13c462cd0ef_iv
-  -in environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml.enc -out environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml -d
+  -in environments_setup/files/users_and_roles.yml.enc -out environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml -d
 - openssl aes-256-cbc -K $encrypted_af7caec4de64_key -iv $encrypted_af7caec4de64_iv
   -in environments_setup/ssh/ansible.enc -out ~/.ssh/id_rsa -d
 - sudo chmod 0600 ~/.ssh/id_rsa

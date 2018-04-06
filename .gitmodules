@@ -1,3 +1,24 @@
 [submodule "big_coin_common_module"]
 	path = big_coin_common_module
 	url = https://github.com/bigdata-project-march-2018-team2/BigCoinCommonModule.git
+[submodule "environments_setup/roles/elastic.elasticsearch"]
+	path = environments_setup/roles/elastic.elasticsearch
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-elasticsearch.git
+[submodule "environments_setup/roles/andrewrothstein.vagrant"]
+	path = environments_setup/roles/andrewrothstein.vagrant
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-vagrant.git
+[submodule "environments_setup/roles/andrewrothstein.spark"]
+	path = environments_setup/roles/andrewrothstein.spark
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-spark.git
+[submodule "environments_setup/roles/andrewrothstein.kafka"]
+	path = environments_setup/roles/andrewrothstein.kafka
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-kafka.git
+[submodule "environments_setup/roles/geerlingguy.kibana"]
+	path = environments_setup/roles/geerlingguy.kibana
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-role-kibana.git
+[submodule "environments_setup/roles/franklinkim.environment"]
+	path = environments_setup/roles/franklinkim.environment
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-environment.git
+[submodule "environments_setup/roles/andrewrothstein.unarchive-deps"]
+	path = environments_setup/roles/andrewrothstein.unarchive-deps
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-unarchive-deps.git

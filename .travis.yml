@@ -7,6 +7,5 @@ install:
   - pip3 install -r requirements.txt
   
 scripts:
-  - cd $TRAVIS_BUILD_DIR
   - python machine_learning/download_nltk_stopwords_wordnet.py
-  - export PYSPARK_PYTHON=python3
+

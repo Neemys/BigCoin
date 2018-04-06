@@ -3,7 +3,7 @@ import datetime
 from bigcoin import bc_elasticsearch
 from datetime import date, timedelta
 from pyspark.sql import SparkSession, Row
-from pyspark.ml.feature import CountVectorizer, StringIndexer
+from pyspark.ml.feature import CountVectorizer, StringIndexer, IndexToString
 from pyspark.ml.classification import NaiveBayes, NaiveBayesModel
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.ml import Pipeline, PipelineModel
@@ -35,7 +35,7 @@ if (len(sys.argv) >= 5):
 	date_predict_end = sys.argv[4]
 # Model path to save or load NaiveBayes model
 model_path = "./model"
-
+bc_es = bc_elasticsearch.BCElasticsearch()
 
 #Initialize SparkSession
 spark = SparkSession \
@@ -52,7 +52,6 @@ def get_next_day(date_str):
 	return next_date_str
 		
 def retrieve_bitcoin_cours(date_str):
-	bc_es = bc_elasticsearch.BCElasticsearch()
 	# es = Elasticsearch([{'host': es_host, 'port': es_port}])
 	res = bc_es._es.get(index=es_index, doc_type=es_doc_type, id=date_str)
 	return res
@@ -131,6 +130,7 @@ def get_variation_value(date_str, date_next_str):
 	
 	difference = valeur_day_next - valeur_day
 	return float(1) if difference >= 0 else float(0)
+	# return "Up" if difference >= 0 else "Down"
 
 def train_naive_bayes_model():
 	# Date range for retrieving data
@@ -153,13 +153,14 @@ def train_naive_bayes_model():
 	
 	# Naive Bayes Model Pipeline : CountVectorizer, StringIndexer, NaiveBayes
 	count_vectorizer = CountVectorizer(inputCol='words', outputCol='features')
-	label_indexer = StringIndexer(inputCol='diff', outputCol='label_index')
-	classifier = NaiveBayes(labelCol='label_index', featuresCol='features', predictionCol='label_predicted')
+	# label_indexer = StringIndexer(inputCol='diff', outputCol='label_index')
+	classifier = NaiveBayes(labelCol='diff', featuresCol='features', predictionCol='label_predicted')
 	
-	pipeline = Pipeline(stages=[count_vectorizer, label_indexer, classifier])
+	# pipeline = Pipeline(stages=[count_vectorizer, label_indexer, classifier])
+	pipeline = Pipeline(stages=[count_vectorizer, classifier])
 	pipeline_model = pipeline.fit(df_train)
 	# Save model in local fs
-	model_path = "./model"
+	# model_path = "./model"
 	pipeline_model.write().overwrite().save(model_path)
 
 	# Apply model on test data
@@ -167,7 +168,7 @@ def train_naive_bayes_model():
 	
 	# Evaluator
 	# Evaluate prediction accuracy on test data
-	evaluator = MulticlassClassificationEvaluator(labelCol='label_index', predictionCol='label_predicted', metricName='accuracy')
+	evaluator = MulticlassClassificationEvaluator(labelCol='diff', predictionCol='label_predicted', metricName='accuracy')
 	accuracy = evaluator.evaluate(test_predicted)
 	
 	print ('Accuracy : '+ str(accuracy*100)+'%')
@@ -185,22 +186,28 @@ def predict_bitcoin_cours_date(date_predict_start, date_predict_end = ""):
 	while (date_search != date_end):
 		wordslist_predict = get_data_day(date_search)
 		if wordslist_predict != None:
-			tuple = (0.0, wordslist_predict, date_search)
+			tuple = (1.0, wordslist_predict, date_search)
 			table.append(tuple)
 		date_search = get_next_day(date_search)
 	
 	rdd_predict = sc.parallelize(table)
 	rdd_predict = rdd_predict.map(lambda tuple: Row(diff=tuple[0], words=tuple[1], date_search=tuple[2]))
 	df_predict = spark.createDataFrame(rdd_predict)
-	
-	model_path = "./model"
+	# Load model from path
 	pipeline_model = PipelineModel.load(model_path)
+	# Predict value
 	df_predicted = pipeline_model.transform(df_predict)
+	# Save result
+	df_filtered = df_predicted.select(df_predicted.date_search, df_predicted.label_predicted)
 	
-	#print ('Resultat prediction pour le jour '+date_predict)
-	df_filtered = df_predicted.select(df_predicted["date_search"], df_predicted["label_predicted"])
-	df_filtered.write.save(path='./predicted_value', mode='overwrite')
+	row = df_filtered.rdd.first()
+	doc = {"date_search":datetime.datetime.strptime(row.date_search, "%Y-%m-%d"),"value":row.label_predicted}
+	bc_es._es.index(index=es_index, doc_type=es_doc_type, id="predicted", body=doc)
+
+	# df_filtered.rdd.map(lambda row: str(row.date_search)+' '+str(row.label_predicted)).repartition(1).saveAsTextFile('./predicted_valueeeee')
+	# print (df_filtered.rdd.first().label_predicted)
 	df_filtered.show()
+
 	
 def main():
 	if input_arg == '0':

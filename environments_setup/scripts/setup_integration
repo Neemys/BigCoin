@@ -2,7 +2,10 @@
 cd $TRAVIS_BUILD_DIR/environments_setup
 #Create integration environment
 ansible-playbook -i inventory playbook.yml --tags=create_integration --skip-tags=always
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 #Run all integration tasks for main playbook
 ansible-playbook -i inventory playbook.yml -l integration --skip-tags=create_integration
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 #Run all integration tasks for all other playbooks
 ansible-playbook -i inventory ../playbooks/* -l integration
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

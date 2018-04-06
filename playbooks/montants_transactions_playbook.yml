@@ -34,6 +34,8 @@
       - kafka
       - requests
       - pyspark
+      - websocket
+      - websocket-client
   - name: run python scripts in background
     become: yes
     #Using su instead of become_user because become_user do not launch script in background or force exit when vagrant shell exit.

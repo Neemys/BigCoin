@@ -1,7 +1,0 @@
----
-- name: installing a deb...
-  become: yes
-  become_user: root
-  apt:
-    deb: /tmp/{{vagrant_pkg}}
-    state: present

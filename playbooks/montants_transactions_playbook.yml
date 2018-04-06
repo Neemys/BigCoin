@@ -20,7 +20,7 @@
       group: "{{ application_usergroup }}"
       owner: "{{ application_username }}"
     with_items:
-      - { src: '../api_to_kafka/transaction_to_kafka_realtime.py', dest: '{{ application_userhome }}/price_index_to_kafka_realtime.py' }
+      - { src: '../api_to_kafka/transaction_to_kafka_realtime.py', dest: '{{ application_userhome }}/transaction_to_kafka_realtime.py' }
       - { src: '../api_to_kafka/historique_montants_to_kafka.py', dest: '{{ application_userhome }}/historique_montants_to_kafka.py' }
       - { src: '../kafka_to_elastic/kafka_historique_montants_to_elastic.py', dest: '{{ application_userhome }}/kafka_historique_montants_to_elastic.py' }
       - { src: '../kafka_to_elastic/transactionToESRealtime/target/transactionToESRealtime-1.0.jar', dest: '{{ application_userhome }}/transactionToESRealtime-1.0.jar' }

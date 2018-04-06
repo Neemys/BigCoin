@@ -13,4 +13,4 @@ install:
   - python machine_learning/download_nltk_stopwords_wordnet.py
   
 script:
-  - pytestz
+  - pytest

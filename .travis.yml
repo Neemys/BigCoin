@@ -3,9 +3,6 @@ language: python
 python:
 - '3.6'
   
-install:
-  - pip3 install -r requirements.txt
-  
 scripts:
   - python machine_learning/download_nltk_stopwords_wordnet.py
 

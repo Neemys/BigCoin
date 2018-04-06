@@ -12,5 +12,5 @@ install:
   - export PYSPARK_PYTHON=python3
   - python machine_learning/download_nltk_stopwords_wordnet.py
   
-
-
+script:
+  - pytestz

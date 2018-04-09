@@ -1,5 +1,6 @@
 import sys
 import datetime
+import time
 from bigcoin import bc_elasticsearch
 from datetime import date, timedelta
 from pyspark.sql import SparkSession, Row
@@ -17,7 +18,8 @@ STOPWORDS = set(stopwords.words('english'))
 CHAR_TO_REMOVE = ',.:;?!"()'
 # API key for GoogleNews API
 API_KEYS = 'your API key'
-API_KEYS = sys.argv[1]
+file = open(sys.argv[1])
+API_KEYS = file.read()
 # Weight for splitting data in training data and testing data 
 SPLIT_WEIGHT = 0.7
 # default values for elasticseach
@@ -37,6 +39,7 @@ if (len(sys.argv) >= 5):
 model_path = "./model"
 bc_es = bc_elasticsearch.BCElasticsearch()
 
+
 #Initialize SparkSession
 spark = SparkSession \
 	.builder \
@@ -52,8 +55,7 @@ def get_next_day(date_str):
 	return next_date_str
 		
 def retrieve_bitcoin_cours(date_str):
-	# es = Elasticsearch([{'host': es_host, 'port': es_port}])
-	res = bc_es._es.get(index=es_index, doc_type=es_doc_type, id=date_str)
+	res = bc_es.get(index=es_index, doc_type=es_doc_type, id=date_str)
 	return res
 
 def retrieve_raw_data_day(date_str):
@@ -73,9 +75,7 @@ def retrieve_raw_data_day(date_str):
 	if response.status_code == 200:
 		return response.json()
 	else:
-		# print ('error')
 		return None
-		# sys.exit(20)
 
 def filter_text(text):
 	#tokenize text
@@ -130,11 +130,10 @@ def get_variation_value(date_str, date_next_str):
 	
 	difference = valeur_day_next - valeur_day
 	return float(1) if difference >= 0 else float(0)
-	# return "Up" if difference >= 0 else "Down"
 
 def train_naive_bayes_model():
 	# Date range for retrieving data
-	date_start = '2018-02-01'
+	date_start = '2018-03-01'
 	date_end = '2018-04-01'
 	date_search = date_start
 	# Create tuple (date, wordslist) containing date and list of words from articles
@@ -160,7 +159,6 @@ def train_naive_bayes_model():
 	pipeline = Pipeline(stages=[count_vectorizer, classifier])
 	pipeline_model = pipeline.fit(df_train)
 	# Save model in local fs
-	# model_path = "./model"
 	pipeline_model.write().overwrite().save(model_path)
 
 	# Apply model on test data
@@ -201,19 +199,21 @@ def predict_bitcoin_cours_date(date_predict_start, date_predict_end = ""):
 	df_filtered = df_predicted.select(df_predicted.date_search, df_predicted.label_predicted)
 	
 	row = df_filtered.rdd.first()
-	doc = {"date_search":datetime.datetime.strptime(row.date_search, "%Y-%m-%d"),"value":row.label_predicted}
-	bc_es._es.index(index=es_index, doc_type=es_doc_type, id="predicted", body=doc)
-
-	# df_filtered.rdd.map(lambda row: str(row.date_search)+' '+str(row.label_predicted)).repartition(1).saveAsTextFile('./predicted_valueeeee')
-	# print (df_filtered.rdd.first().label_predicted)
+	value_float = row.label_predicted
+	if value_float == 0.0:
+		value_str = "Baisse"
+	else:
+		value_str = "Hausse"
+	doc = {"date_search":datetime.datetime.strptime(row.date_search, "%Y-%m-%d"),"prediction":value_str}
+	bc_es._es.index(index='cours_btc_idx_predict', doc_type='cours_btc_predict', id="prediction", body=doc)
 	df_filtered.show()
 
 	
 def main():
-	if input_arg == '0':
-		train_naive_bayes_model()
-	if input_arg == '1':
+	train_naive_bayes_model()
+	while (True):
 		predict_bitcoin_cours_date(date_predict, date_predict_end)
+		time.sleep(86400)
 
 if __name__ == "__main__":
 	main()

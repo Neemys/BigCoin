@@ -34,6 +34,7 @@ before_install:
 install:
 - pip install -r requirements.txt
 - pip install ansible==2.4.3.0
+- openssl aes-256-cbc -K $encrypted_fedee2a0b6cd_key -iv $encrypted_fedee2a0b6cd_iv -in googleapi.enc -out $TRAVIS_BUILD_DIR/googleapi -d
 - openssl aes-256-cbc -K $encrypted_e13c462cd0ef_key -iv $encrypted_e13c462cd0ef_iv
   -in environments_setup/files/users_and_roles.yml.enc -out environments_setup/roles/elastic.elasticsearch/vars/users_and_roles.yml -d
 - openssl aes-256-cbc -K $encrypted_af7caec4de64_key -iv $encrypted_af7caec4de64_iv
@@ -49,6 +50,13 @@ install:
 
 script:
 - cd $TRAVIS_BUILD_DIR
+- python machine_learning/download_nltk_stopwords_wordnet.py
 - export PYTHONPATH=$(pwd)/big_coin_common_module/src
 - pytest
 before_deploy:
+
+
+  
+  
+
+

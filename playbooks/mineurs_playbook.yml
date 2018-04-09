@@ -1,0 +1,49 @@
+- hosts: prod_integ
+  roles:
+  - setupVars
+  tasks:
+  - name: kill running scripts
+    become: yes
+    ignore_errors: True
+    shell: ps aux | grep -ie {{ item }} | grep -v grep | awk '{print $2}' | xargs kill -9
+    with_items:
+      - historique_mineurs_to_kafka.py
+      - mineur_to_kafka_realtime.py
+      - kafka_historique_mineurs_to_elastic.py
+      - mineurToESRealtime-1.0.jar
+  - name: copy scripts
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      force: yes
+      group: "{{ application_usergroup }}"
+      owner: "{{ application_username }}"
+    with_items:
+      - { src: '../api_to_kafka/mineur_to_kafka_realtime.py', dest: '{{ application_userhome }}/mineur_to_kafka_realtime.py' }
+      - { src: '../api_to_kafka/historique_mineurs_to_kafka.py', dest: '{{ application_userhome }}/historique_mineurs_to_kafka.py' }
+      - { src: '../kafka_to_elastic/kafka_historique_mineurs_to_elastic.py', dest: '{{ application_userhome }}/kafka_historique_mineurs_to_elastic.py' }
+      - { src: '../kafka_to_elastic/mineurToESRealtime/target/mineurToESRealtime-1.0.jar', dest: '{{ application_userhome }}/mineurToESRealtime-1.0.jar' }
+  - name: ensure that pip is already installed
+    apt: name=python-pip state=latest
+    become: yes
+  - name: install necessary python modules
+    pip: name={{ item }}
+    with_items:
+      - elasticsearch
+      - kafka
+      - requests
+  - name: run python scripts in background
+    become: yes
+    #Using su instead of become_user because become_user do not launch script in background or force exit when vagrant shell exit.
+    shell: chdir="{{ application_userhome }}" su -c 'python "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
+    with_items:
+      - { filename: "historique_mineurs_to_kafka.py", args: ""}
+      - { filename: "kafka_historique_mineurs_to_elastic.py", args: ""}
+      - { filename: "mineur_to_kafka_realtime.py", args: ""}
+
+  - name: run java scripts in background
+    become: yes
+    shell: chdir="{{ application_userhome }}" su -c 'java -jar  "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
+    with_items:
+      - { filename: "mineurToESRealtime-1.0.jar", args: ""}

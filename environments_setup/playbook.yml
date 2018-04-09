@@ -17,6 +17,7 @@
     - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5603, kibana_server_host: "10.5.82.93", kibana_elasticsearch_url: "http://10.5.82.93:9200", kibana_es_user: "{{ es_kibana_user }}", kibana_es_password: "{{ es_kibana_pass }}" }
     - andrewrothstein.kafka
     - andrewrothstein.spark
+    - { role: geerlingguy.nodejs, become: yes, nodejs_install_npm_user: "{{ ansible_user_id }}" }
     - role: franklinkim.environment
       become: yes
       environment_config:
@@ -42,6 +43,7 @@
   - { role: geerlingguy.kibana, become: yes, kibana_server_port: 5602, kibana_elasticsearch_url: "http://172.17.177.20:9201", kibana_es_user: "{{ es_kibana_user }}", kibana_es_password: "{{ es_kibana_pass }}" }
   - andrewrothstein.kafka
   - andrewrothstein.spark
+  - { role: geerlingguy.nodejs, become: yes, nodejs_install_npm_user: "{{ ansible_user_id }}" }
   - role: franklinkim.environment
     become: yes
     environment_config:
@@ -64,3 +66,6 @@
       - python3
       - python3-pip
       - openjdk-8-jdk
+  - name: Ensure pm2 installed
+    npm: global=yes name=pm2 production=yes state=latest
+    become: yes

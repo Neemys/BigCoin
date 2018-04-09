@@ -19,3 +19,6 @@
 [submodule "environments_setup/roles/andrewrothstein.unarchive-deps"]
 	path = environments_setup/roles/andrewrothstein.unarchive-deps
 	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-unarchive-deps.git
+[submodule "environments_setup/roles/eerlingguy.nodejs"]
+	path = environments_setup/roles/geerlingguy.nodejs
+	url = https://github.com/bigdata-project-march-2018-team2/bc-ansible-role-nodejs.git

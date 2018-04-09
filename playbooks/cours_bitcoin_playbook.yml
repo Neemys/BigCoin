@@ -2,21 +2,11 @@
   roles:
   - setupVars
   tasks:
-  - name: kill running scripts
-    become: yes
-    ignore_errors: True
-    shell: ps aux | grep -ie {{ item }} | grep -v grep | awk '{print $2}' | xargs kill -9
-    with_items:
-      - historique_to_kafka.py
-      - kafka_historique_to_elastic.py
-      - price_index_to_kafka_realtime.py
-      - sparkStream-1.0.jar
-  - name: copy scripts
+  - name: copy scripts and configs
     become: yes
     copy:
       src: "{{ item.src }}"
       dest: "{{ item.dest }}"
-      force: yes
       group: "{{ application_usergroup }}"
       owner: "{{ application_username }}"
     with_items:
@@ -24,27 +14,16 @@
       - { src: '../api_to_kafka/historique_to_kafka.py', dest: '{{ application_userhome }}/historique_to_kafka.py' }
       - { src: '../kafka_to_elastic/kafka_historique_to_elastic.py', dest: '{{ application_userhome }}/kafka_historique_to_elastic.py' }
       - { src: '../kafka_to_elastic/cours_bitcoin_realtime/target/sparkStream-1.0.jar', dest: '{{ application_userhome }}/sparkStream-1.0.jar' }
+      - { src: '../pm2_configs/cours_bitcoin.config.js', dest: '{{ application_userhome }}/cours_bitcoin.config.js' }
   - name: ensure that pip is already installed
     apt: name=python-pip state=latest
     become: yes
   - name: install necessary python modules
-    pip: name={{ item }}
+    pip: name={{ item }} extra_args="--no-cache-dir"
     with_items:
       - elasticsearch
       - kafka
       - requests
       - pyspark
-  - name: run python scripts in background
-    become: yes
-    #Using su instead of become_user because become_user do not launch script in background or force exit when vagrant shell exit.
-    shell: chdir="{{ application_userhome }}" su -c 'python "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
-    with_items:
-      - { filename: "historique_to_kafka.py", args: ""}
-      - { filename: "kafka_historique_to_elastic.py", args: ""}
-      - { filename: "price_index_to_kafka_realtime.py", args: ""}
-
-  - name: run java scripts in background
-    become: yes
-    shell: chdir="{{ application_userhome }}" su -c 'java -jar  "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
-    with_items:
-      - { filename: "sparkStream-1.0.jar", args: ""}
+  - name: run cours_bitcoin scripts with pm2
+    command: chdir="{{ application_userhome }}" pm2 startOrReload cours_bitcoin.config.js

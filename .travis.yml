@@ -44,6 +44,9 @@ install:
 - mvn package -DskipTests=true
 - cd $TRAVIS_BUILD_DIR/kafka_to_elastic/transactionToESRealtime/
 - mvn package -DskipTests=true
+- cd $TRAVIS_BUILD_DIR/kafka_to_elastic/mineurToESRealtime/
+- mvn package -DskipTests=true
+
 script:
 - cd $TRAVIS_BUILD_DIR
 - export PYTHONPATH=$(pwd)/big_coin_common_module/src

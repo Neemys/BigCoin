@@ -5,3 +5,5 @@ mock
 pyspark
 websocket
 websocket-client
+numpy
+nltk

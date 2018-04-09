@@ -19,3 +19,5 @@ __pycache__/
 
 #BigCoin specifics
 *.bcdata
+
+machine_learning/model*

@@ -17,6 +17,10 @@ def generate_kafka_message_from_list(messages):
         yield message['message'],message['key'],message['timestamp_ms']
 
 def main():
+
+    api_key = ''
+    with open('blockchain.info.key') as f:
+        api_key = f.read()
     filename = "historique_montants_to_kafka.bcdata"
     isLastDateReset = False
     #Check if we must reset the last date
@@ -37,13 +41,13 @@ def main():
     for date_current_day in daterange(start_date, end_date):
         time.sleep(10) # need to wait 10 second per api request
         # get all block of the day
-        url_blocks_of_the_day = 'https://blockchain.info/blocks/' + str(calendar.timegm(date_current_day.timetuple())*1000) + '?format=json'
+        url_blocks_of_the_day = 'https://blockchain.info/blocks/' + str(calendar.timegm(date_current_day.timetuple())*1000) + '?format=json&api_code='+api_key
         data_blocks = webservice.get_json_from_address(url_blocks_of_the_day)
         # get all wanted data from each block and create messages to send to kafka
         messages = []
         for i in range(len(data_blocks["blocks"])):
             time.sleep(10) # need to wait 10 second per api request
-            url_current_block = 'https://blockchain.info/rawblock/' + str(data_blocks["blocks"][i]['hash'])
+            url_current_block = 'https://blockchain.info/rawblock/' + str(data_blocks["blocks"][i]['hash'])+'?api_code='+api_key
             current_block_data = webservice.get_json_from_address(url_current_block)
             for j in range(len(current_block_data['tx'])):
                 if 'inputs' in current_block_data['tx'][j]:

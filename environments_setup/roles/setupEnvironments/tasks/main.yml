@@ -18,3 +18,11 @@
     force: yes
     group: "{{ application_usergroup }}"
     owner: "{{ application_username }}"
+
+- name: "Copy common scripts"
+  become: yes
+  copy:
+    src: "{{ playbook_dir }}/../big_coin_common_module/src/deleteRealtimeData.py"
+    dest: "{{ application_userhome }}/deleteRealtimeData.py"
+    group: "{{ application_usergroup }}"
+    owner: "{{ application_username }}"

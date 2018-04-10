@@ -211,9 +211,7 @@ def predict_bitcoin_cours_date(date_predict_start, date_predict_end = ""):
 	
 def main():
 	train_naive_bayes_model()
-	while (True):
-		predict_bitcoin_cours_date(date_predict, date_predict_end)
-		time.sleep(86400)
+	predict_bitcoin_cours_date(date_predict, date_predict_end)
 
 if __name__ == "__main__":
 	main()

@@ -31,3 +31,10 @@
   - name: run montants_transactions scripts with pm2
     command: chdir="{{ application_userhome }}" su -c 'pm2 startOrReload montants_transactions.config.js' -s /bin/sh {{ application_username }}
     become: yes
+  - name: Add crontab to clean montants transaction realtime data
+    cron:
+      name: "Remove montants transactions realtime data"
+      minute: "0"
+      hour: "3"
+      job: "python {{ application_userhome }}/deleteRealtimeData.py transaction_idx"
+      state: 'present'

@@ -1,0 +1,37 @@
+- hosts: prod_integ
+  roles:
+  - setupVars
+  tasks:
+  - name: copy scripts and config
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      force: yes
+      group: "{{ application_usergroup }}"
+      owner: "{{ application_username }}"
+    with_items:
+      - { src: '../api_to_kafka/mineur_to_kafka_realtime.py', dest: '{{ application_userhome }}/mineur_to_kafka_realtime.py' }
+      - { src: '../api_to_kafka/historique_mineurs_to_kafka.py', dest: '{{ application_userhome }}/historique_mineurs_to_kafka.py' }
+      - { src: '../kafka_to_elastic/kafka_historique_mineurs_to_elastic.py', dest: '{{ application_userhome }}/kafka_historique_mineurs_to_elastic.py' }
+      - { src: '../kafka_to_elastic/mineurToESRealtime/target/mineurToESRealtime-1.0.jar', dest: '{{ application_userhome }}/mineurToESRealtime-1.0.jar' }
+      - { src: '../pm2_configs/mineurs.config.js', dest: '{{ application_userhome }}/mineurs.config.js' }
+  - name: ensure that pip is already installed
+    apt: name=python-pip state=latest
+    become: yes
+  - name: install necessary python modules
+    pip: name={{ item }} extra_args="--no-cache-dir"
+    with_items:
+      - elasticsearch
+      - kafka
+      - requests
+  - name: run mineurs scripts with pm2
+    command: chdir="{{ application_userhome }}" su -c 'pm2 startOrReload mineurs.config.js' -s /bin/sh {{ application_username }}
+    become: yes
+  - name: Add crontab to clean mineurs realtime data
+    cron:
+      name: "Remove mineurs realtime data"
+      minute: "0"
+      hour: "4"
+      job: "python {{ application_userhome }}/deleteRealtimeData.py mineur_idx"
+      state: 'present'

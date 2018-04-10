@@ -1,0 +1,8 @@
+
+cd $TRAVIS_BUILD_DIR/environments_setup
+#Check main playbook
+ansible-playbook -i inventory playbook.yml --syntax-check
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+#Check all other playbooks
+ansible-playbook -i inventory ../playbooks/* --syntax-check
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

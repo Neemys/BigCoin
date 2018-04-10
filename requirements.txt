@@ -1,0 +1,9 @@
+requests
+elasticsearch
+kafka
+mock
+pyspark
+websocket
+websocket-client
+numpy
+nltk

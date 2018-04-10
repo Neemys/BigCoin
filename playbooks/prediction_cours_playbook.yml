@@ -1,0 +1,44 @@
+- hosts: prod_integ
+  roles:
+  - setupVars
+  tasks:
+  - name: copy scripts
+    become: yes
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      force: yes
+      group: "{{ application_usergroup }}"
+      owner: "{{ application_username }}"
+    with_items:
+      - { src: '../machine_learning/naive_bayes_ml_cours_bitcoin.py', dest: '{{ application_userhome }}/naive_bayes_ml_cours_bitcoin.py' }
+      - { src: '../machine_learning/download_nltk_stopwords_wordnet.py', dest: '{{ application_userhome }}/download_nltk_stopwords_wordnet.py' }
+      - { src: '../googleapi', dest: '{{ application_userhome }}/googleapi' }
+  - name: ensure that pip is already installed
+    apt: name=python-pip state=latest
+    become: yes
+  - name: install necessary python modules
+    pip: name={{ item }} extra_args="--no-cache-dir"
+    with_items:
+      - requests
+      - numpy
+      - elasticsearch
+      - pyspark
+      - nltk
+  - name: run python script to download nltk data
+    become: yes
+    shell: chdir="{{ application_userhome }}" su -c 'python "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1
+    with_items:
+      - { filename: "download_nltk_stopwords_wordnet.py", args: ""}
+  - name: run spark jobs
+    become: yes
+    shell: chdir="{{ application_userhome }}" su -c 'spark-submit "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
+    with_items:  
+      - { filename: "naive_bayes_ml_cours_bitcoin.py", args: "./googleapi" }
+  - name: Add crontab to learn each day
+    cron:
+      name: "Learn each day from google news"
+      minute: "0"
+      hour: "1"
+      job: "python {{ application_userhome }}/naive_bayes_ml_cours_bitcoin.py googleapi"
+      state: 'present'

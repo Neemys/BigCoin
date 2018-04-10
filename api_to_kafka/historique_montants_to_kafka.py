@@ -6,6 +6,7 @@ import bigcoin.date as bcdate
 import bigcoin.persistence as bcpersist
 from bigcoin import bc_kafka, webservice
 import time
+import signal
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
@@ -63,5 +64,9 @@ def main():
         bc_kafka.send_to_topic_from_generator("historique_montants","python_historique_montants_producer",generate_kafka_message_from_list(messages))
         #Set the last processed date
         bcpersist.save_date_to_file(filename,bcdate.get_date_string_yyyy_mm_dd_from_datetime(date_current_day))
+
+	#Wait forever for a restart (will be killed then restarted)
+	signal.pause()
+
 if __name__ == '__main__':
     main()

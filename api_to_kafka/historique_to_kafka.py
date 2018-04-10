@@ -5,7 +5,7 @@ from bigcoin import bc_kafka, webservice
 import calendar
 import bigcoin.date as bcdate
 import bigcoin.persistence as bcpersist
-
+import signal
 
 # Default values
 filename = "historique_to_kafka.bcdata"
@@ -43,6 +43,9 @@ def main():
 	json_data = webservice.get_json_from_address(url_cours_bitcoin)
 	bc_kafka.send_to_topic_from_generator("historique_cours_bitcoin","python_historique_cours_bitcoin_producer",generate_data_for_kafka_from_json(json_data))
 	bcpersist.save_date_to_file(filename,end_date)
+
+	#Wait forever for a restart (will be killed then restarted)
+	signal.pause()
 
 if __name__ == '__main__':
 	main()

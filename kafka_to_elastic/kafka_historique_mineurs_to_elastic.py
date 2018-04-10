@@ -10,7 +10,7 @@ def generate_elastic_insert_from_messages(messages):
 		yield {
 			'_index' : 'mineur_idx',
 			'_type': 'transaction',
-			'_id': json_message['index']+json_message['n'],
+			'_id': int(str(json_message['index'])+''+str(json_message['n'])),
 			'_source': {
 				'date': datetime.datetime.utcfromtimestamp(json_message['timestamp']),
 				'value': float(json_message["value"])/ 100000000,

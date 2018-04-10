@@ -39,10 +39,11 @@ def main():
 	maybe_start_date = bcdate.increment_a_day_from_date_as_string(maybe_start_date)
 	if maybe_start_date is not None:
 		start_date = maybe_start_date
-	url_cours_bitcoin = 'https://api.coindesk.com/v1/bpi/historical/close.json?currency='+currency+'&start='+start_date+'&end='+end_date
-	json_data = webservice.get_json_from_address(url_cours_bitcoin)
-	bc_kafka.send_to_topic_from_generator("historique_cours_bitcoin","python_historique_cours_bitcoin_producer",generate_data_for_kafka_from_json(json_data))
-	bcpersist.save_date_to_file(filename,end_date)
+	if start_date < end_date:
+		url_cours_bitcoin = 'https://api.coindesk.com/v1/bpi/historical/close.json?currency='+currency+'&start='+start_date+'&end='+end_date
+		json_data = webservice.get_json_from_address(url_cours_bitcoin)
+		bc_kafka.send_to_topic_from_generator("historique_cours_bitcoin","python_historique_cours_bitcoin_producer",generate_data_for_kafka_from_json(json_data))
+		bcpersist.save_date_to_file(filename,end_date)
 
 	#Wait forever for a restart (will be killed then restarted)
 	signal.pause()

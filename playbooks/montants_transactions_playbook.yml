@@ -29,4 +29,5 @@
       - websocket
       - websocket-client
   - name: run montants_transactions scripts with pm2
-    command: chdir="{{ application_userhome }}" pm2 startOrReload montants_transactions.config.js
+    command: chdir="{{ application_userhome }}" su -c 'pm2 startOrReload montants_transactions.config.js' -s /bin/sh {{ application_username }}
+    become: yes

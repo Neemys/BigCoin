@@ -18,7 +18,7 @@
     apt: name=python-pip state=latest
     become: yes
   - name: install necessary python modules
-    pip: name={{ item }}
+    pip: name={{ item }} extra_args="--no-cache-dir"
     with_items:
       - requests
       - numpy
@@ -35,3 +35,10 @@
     shell: chdir="{{ application_userhome }}" su -c 'spark-submit "{{ item.filename }}" {{ item.args }}' -s /bin/sh {{ application_username }} </dev/null >/dev/null 2>&1 &
     with_items:  
       - { filename: "naive_bayes_ml_cours_bitcoin.py", args: "./googleapi" }
+  - name: Add crontab to learn each day
+    cron:
+      name: "Learn each day from google news"
+      minute: "0"
+      hour: "1"
+      job: "python {{ application_userhome }}/naive_bayes_ml_cours_bitcoin.py googleapi"
+      state: 'present'

@@ -101,9 +101,11 @@ public class App
                     Date date = new Date(jsonObject.getLong("time") * 1000);
 
                     // Get the outputs
+                    String tx_index = jsonObject.getString("tx_index");
                     JSONArray jsonArray = jsonObject.getJSONArray("out");
                     for (int i = 0; i < jsonArray.length(); i++) {
 
+                        String n = Integer.toString(i);
                         jsonObject = jsonArray.getJSONObject(i);
 
                         if (jsonObject.has("addr")) {
@@ -122,7 +124,7 @@ public class App
                             values.add("temps_reel");
 
                             // Insert data in ES
-                            IndexResponse reponse = client.prepareIndex("mineur_idx", "mineur")
+                            IndexResponse reponse = client.prepareIndex("mineur_idx", "mineur", tx_index + i)
                                     .setSource(values.toArray())
                                     .get();
 

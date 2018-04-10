@@ -6,6 +6,7 @@ import bigcoin.date as bcdate
 import bigcoin.persistence as bcpersist
 from bigcoin import bc_kafka, webservice
 import time
+import signal
 
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
@@ -17,6 +18,9 @@ def generate_kafka_message_from_list(messages):
         yield message['message'],message['key'],message['timestamp_ms']
 
 def main():
+    api_key = ''
+    with open('blockchain.info.key') as f:
+        api_key = f.read()
     filename = "historique_mineurs_to_kafka.bcdata"
     isLastDateReset = False
     #Check if we must reset the last date
@@ -37,13 +41,13 @@ def main():
     for date_current_day in daterange(start_date, end_date):
         time.sleep(10) # need to wait 10 second per api request
         # get all block of the day
-        url_blocks_of_the_day = 'https://blockchain.info/blocks/' + str(calendar.timegm(date_current_day.timetuple())*1000) + '?format=json'
+        url_blocks_of_the_day = 'https://blockchain.info/blocks/' + str(calendar.timegm(date_current_day.timetuple())*1000) + '?format=json&api_code='+api_key
         data_blocks = webservice.get_json_from_address(url_blocks_of_the_day)
         # get all wanted data from each block and create messages to send to kafka
         messages = []
         for i in range(len(data_blocks["blocks"])):
             time.sleep(10) # need to wait 10 second per api request
-            url_current_block = 'https://blockchain.info/rawblock/' + str(data_blocks["blocks"][i]['hash'])
+            url_current_block = 'https://blockchain.info/rawblock/' + str(data_blocks["blocks"][i]['hash'])+'?api_code='+api_key
             current_block_data = webservice.get_json_from_address(url_current_block)
             if len(current_block_data['tx']) > 0:
                 if 'out' in current_block_data['tx'][0]:
@@ -56,5 +60,9 @@ def main():
         bc_kafka.send_to_topic_from_generator("historique_mineurs","python_historique_mineurs_producer",generate_kafka_message_from_list(messages))
         #Set the last processed date
         bcpersist.save_date_to_file(filename,bcdate.get_date_string_yyyy_mm_dd_from_datetime(date_current_day))
+
+	#Wait forever for a restart (will be killed then restarted)
+    signal.pause()
+
 if __name__ == '__main__':
     main()

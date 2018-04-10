@@ -1,6 +1,7 @@
 from bigcoin import bc_kafka,bc_elasticsearch
 import json
 import datetime
+import signal
 
 def generate_elastic_insert_from_messages(messages):
 	for message in messages:
@@ -9,7 +10,7 @@ def generate_elastic_insert_from_messages(messages):
 		yield {
 			'_index' : 'mineur_idx',
 			'_type': 'transaction',
-			'_id': json_message['index']+json_message['n'],
+			'_id': int(str(json_message['index'])+''+str(json_message['n'])),
 			'_source': {
 				'date': datetime.datetime.utcfromtimestamp(json_message['timestamp']),
 				'value': float(json_message["value"])/ 100000000,
@@ -29,5 +30,8 @@ def main():
 		bc_es.send_messages(generate_elastic_insert_from_messages(messages))
 		bc_consumer.set_messages_read()
 
+	#Wait forever for a restart (will be killed then restarted)
+    signal.pause()
+    
 if __name__ == '__main__':
 	main()

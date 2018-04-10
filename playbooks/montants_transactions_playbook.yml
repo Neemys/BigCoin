@@ -16,6 +16,7 @@
       - { src: '../kafka_to_elastic/kafka_historique_montants_to_elastic.py', dest: '{{ application_userhome }}/kafka_historique_montants_to_elastic.py' }
       - { src: '../kafka_to_elastic/transactionToESRealtime/target/transactionToESRealtime-1.0.jar', dest: '{{ application_userhome }}/transactionToESRealtime-1.0.jar' }
       - { src: '../pm2_configs/montants_transactions.config.js', dest: '{{ application_userhome }}/montants_transactions.config.js' }
+      - { src: '../api_keys/blockchain.info.key', dest: '{{ application_userhome }}/blockchain.info.key' }
   - name: ensure that pip is already installed
     apt: name=python-pip state=latest
     become: yes

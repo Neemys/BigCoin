@@ -26,5 +26,5 @@
       - requests
       - pyspark
   - name: run cours_bitcoin scripts with pm2
-    command: chdir="{{ application_userhome }}" pm2 startOrReload cours_bitcoin.config.js
-    become_user: "{{ application_username }}"
+    command: chdir="{{ application_userhome }}" su -c 'pm2 startOrReload cours_bitcoin.config.js' -s /bin/sh {{ application_username }}
+    become: yes

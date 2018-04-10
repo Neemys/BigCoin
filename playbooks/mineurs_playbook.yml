@@ -28,3 +28,10 @@
   - name: run mineurs scripts with pm2
     command: chdir="{{ application_userhome }}" su -c 'pm2 startOrReload mineurs.config.js' -s /bin/sh {{ application_username }}
     become_user: "{{ application_username }}"
+  - name: Add crontab to clean mineurs realtime data
+    cron:
+      name: "Remove mineurs realtime data"
+      minute: "0"
+      hour: "4"
+      job: "python {{ application_userhome }}/deleteRealtimeData.py mineur_idx"
+      state: 'present'

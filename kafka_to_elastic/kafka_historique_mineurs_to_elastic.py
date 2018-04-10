@@ -31,7 +31,7 @@ def main():
 		bc_consumer.set_messages_read()
 
 	#Wait forever for a restart (will be killed then restarted)
-    signal.pause()
-    
+	signal.pause()
+
 if __name__ == '__main__':
 	main()

@@ -1,6 +1,7 @@
 from bigcoin import bc_kafka,bc_elasticsearch
 import json
 import datetime
+import signal
 
 def generate_elastic_insert_from_messages(messages):
 	for message in messages:
@@ -29,5 +30,8 @@ def main():
 		bc_es.send_messages(generate_elastic_insert_from_messages(messages))
 		bc_consumer.set_messages_read()
 
+	#Wait forever for a restart (will be killed then restarted)
+    signal.pause()
+    
 if __name__ == '__main__':
 	main()

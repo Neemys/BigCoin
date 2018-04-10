@@ -122,7 +122,7 @@ public class App
                     values.add("temps_reel");
 
                     // Insert data in ES
-                    IndexResponse reponse = client.prepareIndex("transaction_idx", "transaction")
+                    IndexResponse reponse = client.prepareIndex("transaction_idx", "transaction", Long.toString(tx_index))
                             .setSource(values.toArray())
                             .get();
 

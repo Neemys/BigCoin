@@ -28,3 +28,10 @@
   - name: run cours_bitcoin scripts with pm2
     command: chdir="{{ application_userhome }}" su -c 'pm2 startOrReload cours_bitcoin.config.js' -s /bin/sh {{ application_username }}
     become: yes
+  - name: Add crontab to clean realtime data
+    cron:
+      name: "Remove cours bitcoin realtime data"
+      minute: "0"
+      hour: "2"
+      job: "python {{ application_userhome }}/deleteRealtimeData.py cours_btc_idx"
+      state: 'present'
